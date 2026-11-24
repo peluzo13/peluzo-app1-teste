@@ -28,4 +28,5 @@ fs.writeFileSync(path.join(root, 'web/index.html'), html);
 const assets = path.join(root, 'app/src/main/assets');
 fs.mkdirSync(assets, { recursive: true });
 fs.writeFileSync(path.join(assets, 'index.html'), html);
-console.log('ok: web/index.html + app/src/main/assets/index.html');
+fs.copyFileSync(path.join(root, 'web/biblia.json'), path.join(assets, 'biblia.json'));
+console.log('ok: web/index.html + app/src/main/assets/{index.html,biblia.json}');

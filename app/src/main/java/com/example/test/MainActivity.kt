@@ -18,6 +18,9 @@ class MainActivity : AppCompatActivity() {
         webView.setBackgroundColor(Color.parseColor("#0c0e13"))
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        webView.settings.allowFileAccess = true
+        @Suppress("DEPRECATION")
+        webView.settings.allowFileAccessFromFileURLs = true
         setContentView(webView)
         if (savedInstanceState != null) webView.restoreState(savedInstanceState)
         else webView.loadUrl("file:///android_asset/index.html")

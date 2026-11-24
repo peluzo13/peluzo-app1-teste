@@ -17,7 +17,7 @@
 <title>Liberto</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Literata:ital,opsz,wght@1,7..72,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&display=swap">
 <style>
 /* Layout: single-column phone app, fixed bottom tab bar, one dark "candlelit stone" world. */
 :root {
@@ -162,6 +162,30 @@ textarea { min-height: 96px; resize: vertical; }
 .daily[aria-pressed="true"] .box::after { content: ""; width: 10px; height: 6px; border-left: 2.5px solid #1a1408; border-bottom: 2.5px solid #1a1408; transform: rotate(-45deg) translate(1px,-1px); }
 .daily { text-align: left; width: 100%; }
 
+/* Bíblia */
+.bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--gold); border-radius: 999px; }
+.bar.thin { height: 4px; }
+.big-pct { font-family: var(--font-display); font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.book { background: var(--surface); border-radius: 12px; padding: 11px 12px; display: grid; gap: 6px; text-align: left; min-width: 0; }
+.book b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book small { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.book.done b { color: var(--gold); }
+.chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; }
+.chs button { aspect-ratio: 1; border-radius: 12px; background: var(--surface); font-variant-numeric: tabular-nums; font-weight: 600; }
+.chs button.read { background: var(--gold-soft); color: var(--gold); }
+.chs button.last { outline: 2px solid var(--gold); outline-offset: -2px; }
+.reader { font-family: var(--font-verse); font-style: normal; font-size: 18px; line-height: 1.75; }
+.reader .v { cursor: pointer; border-radius: 4px; padding: 1px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.reader .v sup { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 600; margin: 0 3px 0 2px; }
+.reader .v.mk { background: var(--gold-soft); box-shadow: inset 0 -2px 0 var(--gold); }
+.reader .v.mk sup { color: var(--gold); }
+.navrow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.back { color: var(--muted); font-size: 14px; padding: 6px 0; }
+.mark-item { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 6px; text-align: left; width: 100%; }
+.mark-item .verse { font-size: 16px; }
+
 /* Tab bar */
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -169,8 +193,8 @@ nav.tabs {
   border-top: 1px solid var(--line);
   padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
 }
-nav.tabs .inner { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
-nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 11px; color: var(--muted); text-decoration: none; padding: 4px 0; font-weight: 500; }
+nav.tabs .inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 10.5px; white-space: nowrap; color: var(--muted); text-decoration: none; padding: 4px 0; font-weight: 500; }
 nav.tabs a svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 nav.tabs a[aria-current="page"] { color: var(--gold); }
 
@@ -212,6 +236,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     <a href="#inicio" data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h10"/></svg>Início</a>
     <a href="#desafio" data-tab="desafio"><svg viewBox="0 0 24 24"><path d="M5 5v14M9 5v14M13 5v14M17 5v14M3 17 19 7"/></svg>Desafio</a>
     <a href="#incentivo" data-tab="incentivo"><svg viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2-4.7.3 1.7 1.2 2.7 2 2.7 0-3 0-5.5 1-8z"/></svg>Incentivo</a>
+    <a href="#biblia" data-tab="biblia"><svg viewBox="0 0 24 24"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg>Bíblia</a>
     <a href="#diario" data-tab="diario"><svg viewBox="0 0 24 24"><path d="M6 3h11a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>Diário</a>
     <a href="#perfil" data-tab="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</a>
   </div>
@@ -333,6 +358,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       ],
       onboarded: false,
       seen: {}, links: [], dailyDone: {},
+      bible: { read: {}, marks: {}, last: null },
     };
   }
   function load() {
@@ -590,10 +616,123 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <p class="muted" style="font-size:12px">No YouTube, os botões abrem uma busca pelo tema, então você sempre vê o que há de mais recente. No Spotify, abrem direto o podcast.</p>`;
   }
 
+  // ---------- Bíblia ----------
+  const BOOKS = ['Gênesis','Êxodo','Levítico','Números','Deuteronômio','Josué','Juízes','Rute','1 Samuel','2 Samuel','1 Reis','2 Reis','1 Crônicas','2 Crônicas','Esdras','Neemias','Ester','Jó','Salmos','Provérbios','Eclesiastes','Cânticos','Isaías','Jeremias','Lamentações','Ezequiel','Daniel','Oseias','Joel','Amós','Obadias','Jonas','Miqueias','Naum','Habacuque','Sofonias','Ageu','Zacarias','Malaquias','Mateus','Marcos','Lucas','João','Atos','Romanos','1 Coríntios','2 Coríntios','Gálatas','Efésios','Filipenses','Colossenses','1 Tessalonicenses','2 Tessalonicenses','1 Timóteo','2 Timóteo','Tito','Filemom','Hebreus','Tiago','1 Pedro','2 Pedro','1 João','2 João','3 João','Judas','Apocalipse'];
+  // versículos por capítulo, por livro
+  const BMETA = [[31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,23,57,38,34,34,28,34,31,22,33,26],[22,25,22,31,23,30,25,32,35,29,10,51,22,31,27,36,16,27,25,26,36,31,33,18,40,37,21,43,46,38,18,35,23,35,35,38,29,31,43,38],[17,16,17,35,19,30,38,36,24,20,47,8,59,57,33,34,16,30,37,27,24,33,44,23,55,46,34],[54,34,51,49,31,27,89,26,23,36,35,16,33,45,41,50,13,32,22,29,35,41,30,25,18,65,23,31,40,16,54,42,56,29,34,13],[46,37,29,49,33,25,26,20,29,22,32,32,18,29,23,22,20,22,21,20,23,30,25,22,19,19,26,68,29,20,30,52,29,12],[18,24,17,24,15,27,26,35,27,43,23,24,33,15,63,10,18,28,51,9,45,34,16,33],[36,23,31,24,31,40,25,35,57,18,40,15,25,20,20,31,13,31,30,48,25],[22,23,18,22],[28,36,21,22,12,21,17,22,27,27,15,25,23,52,35,23,58,30,24,42,15,23,29,22,44,25,12,25,11,31,13],[27,32,39,12,25,23,29,18,13,19,27,31,39,33,37,23,29,33,43,26,22,51,39,25],[53,46,28,34,18,38,51,66,28,29,43,33,34,31,34,34,24,46,21,43,29,53],[18,25,27,44,27,33,20,29,37,36,21,21,25,29,38,20,41,37,37,21,26,20,37,20,30],[54,55,24,43,26,81,40,40,44,14,47,40,14,17,29,43,27,17,19,8,30,19,32,31,31,32,34,21,30],[17,18,17,22,14,42,22,18,31,19,23,16,22,15,19,14,19,34,11,37,20,12,21,27,28,23,9,27,36,27,21,33,25,33,27,23],[11,70,13,24,17,22,28,36,15,44],[11,20,32,23,19,19,73,18,38,39,36,47,31],[22,23,15,17,14,14,10,17,32,3],[22,13,26,21,27,30,21,22,35,22,20,25,28,22,35,22,16,21,29,29,34,30,17,25,6,14,23,28,25,31,40,22,33,37,16,33,24,41,30,24,34,17],[6,12,8,8,12,10,17,9,20,18,7,8,6,7,5,11,15,50,14,9,13,31,6,10,22,12,14,9,11,12,24,11,22,22,28,12,40,22,13,17,13,11,5,26,17,11,9,14,20,23,19,9,6,7,23,13,11,11,17,12,8,12,11,10,13,20,7,35,36,5,24,20,28,23,10,12,20,72,13,19,16,8,18,12,13,17,7,18,52,17,16,15,5,23,11,13,12,9,9,5,8,28,22,35,45,48,43,13,31,7,10,10,9,8,18,19,2,29,176,7,8,9,4,8,5,6,5,6,8,8,3,18,3,3,21,26,9,8,24,13,10,7,12,15,21,10,20,14,9,6],[33,22,35,27,23,35,27,36,18,32,31,28,25,35,33,33,28,24,29,30,31,29,35,34,28,28,27,28,27,33,31],[18,26,22,16,20,12,29,17,18,20,10,14],[17,17,11,16,16,13,13,14],[31,22,26,6,30,13,25,22,21,34,16,6,22,32,9,14,14,7,25,6,17,25,18,23,12,21,13,29,24,33,9,20,24,17,10,22,38,22,8,31,29,25,28,28,25,13,15,22,26,11,23,15,12,17,13,12,21,14,21,22,11,12,19,12,25,24],[19,37,25,31,31,30,34,22,26,25,23,17,27,22,21,21,27,23,15,18,14,30,40,10,38,24,22,17,32,24,40,44,26,22,19,32,21,28,18,16,18,22,13,30,5,28,7,47,39,46,64,34],[22,22,66,22,22],[28,10,27,17,17,14,27,18,11,22,25,28,23,23,8,63,24,32,14,49,32,31,49,27,17,21,36,26,21,26,18,32,33,31,15,38,28,23,29,49,26,20,27,31,25,24,23,35],[21,49,30,37,31,28,28,27,27,21,45,13],[11,23,5,19,15,11,16,14,17,15,12,14,16,9],[20,32,21],[15,16,15,13,27,14,17,14,15],[21],[17,10,10,11],[16,13,12,13,15,16,20],[15,13,19],[17,20,19],[18,15,20],[15,23],[21,13,10,14,11,15,14,23,17,12,17,14,9,21],[14,17,18,6],[25,23,17,25,48,34,29,34,38,42,30,50,58,36,39,28,27,35,30,34,46,46,39,51,46,75,66,20],[45,28,35,41,43,56,37,38,50,52,33,44,37,72,47,20],[80,52,38,44,39,49,50,56,62,42,54,59,35,35,32,31,37,43,48,47,38,71,56,53],[51,25,36,54,47,71,53,59,41,42,57,50,38,31,27,33,26,40,42,31,25],[26,47,26,37,42,15,60,40,43,48,30,25,52,28,41,40,34,28,41,38,40,30,35,27,27,32,44,31],[32,29,31,25,21,23,25,39,33,21,36,21,14,23,33,27],[31,16,23,21,13,20,40,13,27,33,34,31,13,40,58,24],[24,17,18,18,21,18,16,24,15,18,33,21,14],[24,21,29,31,26,18],[23,22,21,32,33,24],[30,30,21,23],[29,23,25,18],[10,20,13,18,28],[12,17,18],[20,15,16,16,25,21],[18,26,17,22],[16,15,15],[25],[14,18,19,16,14,20,28,13,28,39,40,29,25],[27,26,18,17,20],[25,25,22,19,14],[21,22,18],[10,29,24,21,21],[13],[15],[25],[20,29,22,11,14,17,17,13,21,11,19,18,18,20,8,21,18,24,21,15,27,21]];
+  const VTOTAL = BMETA.reduce((a, b) => a + b.reduce((x, y) => x + y, 0), 0);
+  const CTOTAL = BMETA.reduce((a, b) => a + b.length, 0);
+  let BIBLE = null, bibleErr = false, bibleLoading = false;
+  let bv = { mode: 'books', b: 0, c: 1 };
+  function B() { if (!S.bible) S.bible = { read: {}, marks: {}, last: null }; return S.bible; }
+  function loadBible() {
+    if (BIBLE || bibleLoading) return;
+    bibleLoading = true; bibleErr = false;
+    fetch('biblia.json').then(r => { if (!r.ok) throw 0; return r.json(); })
+      .then(j => { BIBLE = j; bibleLoading = false; if (tab === 'biblia') render(); })
+      .catch(() => { bibleLoading = false; bibleErr = true; if (tab === 'biblia') render(); });
+  }
+  function bibleStats() {
+    const rd = B().read;
+    let v = 0, ch = 0, vot = 0, vnt = 0;
+    const per = BMETA.map(() => 0);
+    for (const k in rd) {
+      const [b, c] = k.split(':').map(Number);
+      const n = (BMETA[b] || [])[c - 1]; if (!n) continue;
+      v += n; ch++; per[b]++;
+      if (b < 39) vot += n; else vnt += n;
+    }
+    const tot = (from, to) => BMETA.slice(from, to).reduce((a, b) => a + b.reduce((x, y) => x + y, 0), 0);
+    return { pct: v / VTOTAL, ch, per, ot: vot / tot(0, 39), nt: vnt / tot(39, 66) };
+  }
+  const pctTxt = x => (x * 100 < 10 && x > 0 ? (x * 100).toFixed(1) : Math.floor(x * 100)).toString().replace('.', ',') + '%';
+  function viewBiblia() {
+    const bb = B();
+    if (bv.mode === 'chapters') {
+      const n = BMETA[bv.b].length;
+      const last = bb.last;
+      return `
+        <button class="back" data-bnav="books">← Livros</button>
+        <header class="top"><h1>${BOOKS[bv.b]}</h1></header>
+        <p class="muted">${bibleStats().per[bv.b]} de ${n} capítulos lidos</p>
+        <div class="chs">${Array.from({ length: n }, (_, i) => i + 1).map(c => `<button data-bch="${c}" class="${bb.read[bv.b + ':' + c] ? 'read' : ''} ${last && last[0] === bv.b && last[1] === c ? 'last' : ''}">${c}</button>`).join('')}</div>`;
+    }
+    if (bv.mode === 'marks') {
+      const ms = Object.entries(bb.marks).sort((a, b) => new Date(b[1].at) - new Date(a[1].at));
+      return `
+        <button class="back" data-bnav="books">← Livros</button>
+        <header class="top"><h1>Versículos marcados</h1></header>
+        <div class="list">${ms.length ? ms.map(([k, m]) => {
+          const [b, c, v] = k.split(':').map(Number);
+          return `<div class="mark-item"><span class="ref">${BOOKS[b]} ${c}:${v}</span><p class="verse">“${esc(m.t)}”</p>
+            <div class="row"><button class="chip" data-mgo="${k}">Abrir capítulo</button><button class="del" data-mdel="${k}">Desmarcar</button></div></div>`;
+        }).join('') : '<p class="muted">Nenhum versículo marcado. Na leitura, toque num versículo para marcar.</p>'}</div>`;
+    }
+    if (bv.mode === 'read') {
+      const b = bv.b, c = bv.c, key = b + ':' + c, isRead = !!bb.read[key];
+      const nChap = BMETA[b].length;
+      const hasPrev = b > 0 || c > 1, hasNext = b < 65 || c < nChap;
+      let body;
+      if (BIBLE) {
+        body = `<div class="reader">${BIBLE[b][c - 1].map((t, i) => `<span class="v ${bb.marks[key + ':' + (i + 1)] ? 'mk' : ''}" data-bv="${i + 1}"><sup>${i + 1}</sup>${esc(t)}</span> `).join('')}</div>`;
+      } else if (bibleErr) {
+        body = `<div class="card"><p>Não consegui carregar o texto da Bíblia. Verifique a internet e tente de novo.</p><button class="btn" id="bibRetry">Tentar de novo</button></div>`;
+      } else { loadBible(); body = '<p class="muted">Carregando o texto…</p>'; }
+      return `
+        <div class="navrow"><button class="back" data-bnav="chapters">← ${BOOKS[b]}</button><span></span><span class="muted" style="font-size:13px">${c} de ${nChap}</span></div>
+        <header class="top"><h1>${BOOKS[b]} ${c}</h1></header>
+        <p class="muted" style="font-size:13px">Toque num versículo para marcar.</p>
+        ${body}
+        <button class="btn ${isRead ? 'ghost' : 'primary'} block" id="bibRead">${isRead ? 'Lido ✓ (toque para desmarcar)' : (hasNext ? 'Marcar como lido e ir ao próximo' : 'Marcar como lido')}</button>
+        <div class="row" style="justify-content:space-between">
+          <button class="btn ghost" id="bibPrev" ${hasPrev ? '' : 'disabled style="opacity:.4"'}>← Anterior</button>
+          <button class="btn ghost" id="bibNext" ${hasNext ? '' : 'disabled style="opacity:.4"'}>Próximo →</button>
+        </div>
+        <p class="muted" style="font-size:11px">Texto: Bíblia Livre (licença CC BY-SA).</p>`;
+    }
+    const st = bibleStats();
+    const last = bb.last;
+    const nMarks = Object.keys(bb.marks).length;
+    const bookBtn = i => {
+      const n = BMETA[i].length, r = st.per[i];
+      return `<button class="book ${r === n ? 'done' : ''}" data-bk="${i}"><b>${BOOKS[i]}</b><div class="bar thin"><i style="width:${(r / n * 100).toFixed(1)}%"></i></div><small>${r}/${n}</small></button>`;
+    };
+    return `
+      <header class="top"><h1>Bíblia</h1></header>
+      <section class="card">
+        <span class="eyebrow">Quanto da Bíblia você já leu</span>
+        <div class="spread"><span class="big-pct">${pctTxt(st.pct)}</span><span class="muted" style="font-size:13px;text-align:right">${st.ch} de ${CTOTAL}<br>capítulos</span></div>
+        <div class="bar"><i style="width:${(st.pct * 100).toFixed(2)}%"></i></div>
+        <div class="stats">
+          <div class="stat"><b>${pctTxt(st.ot)}</b><span>Antigo Testamento</span></div>
+          <div class="stat"><b>${pctTxt(st.nt)}</b><span>Novo Testamento</span></div>
+        </div>
+        <p class="muted" style="font-size:12px">O percentual conta os versículos dos capítulos marcados como lidos.</p>
+      </section>
+      <div class="row">
+        <button class="btn primary" id="bibCont">${last ? 'Continuar: ' + BOOKS[last[0]] + ' ' + last[1] : 'Começar por João 1'}</button>
+        <button class="btn" data-bnav="marks">Marcados (${nMarks})</button>
+      </div>
+      <h2>Antigo Testamento</h2>
+      <div class="books">${BOOKS.slice(0, 39).map((_, i) => bookBtn(i)).join('')}</div>
+      <h2>Novo Testamento</h2>
+      <div class="books">${BOOKS.slice(39).map((_, i) => bookBtn(i + 39)).join('')}</div>`;
+  }
+  function openChapter(b, c) {
+    bv = { mode: 'read', b, c }; B().last = [b, c]; save(); render(); window.scrollTo(0, 0);
+  }
+  function stepChapter(dir) {
+    let b = bv.b, c = bv.c + dir;
+    if (c < 1) { if (b === 0) return; b--; c = BMETA[b].length; }
+    else if (c > BMETA[b].length) { if (b === 65) return; b++; c = 1; }
+    openChapter(b, c);
+  }
+
   // ---------- routing & render ----------
-  const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, diario: viewDiario, perfil: viewPerfil };
+  const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, biblia: viewBiblia, diario: viewDiario, perfil: viewPerfil };
   let tab = 'inicio';
   function route() {
+    if (location.hash === '#biblia' && tab !== 'biblia') bv = { ...bv, mode: 'books' };
     const h = location.hash.replace('#', '');
     tab = VIEWS[h] ? h : 'inicio';
     render();
@@ -762,6 +901,24 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         S[list] = S[list].filter(x => x.id !== did); save(); render();
       });
     }
+    if (t.dataset.bnav) { bv = { ...bv, mode: t.dataset.bnav }; render(); return window.scrollTo(0, 0); }
+    if (t.dataset.bk) { bv = { mode: 'chapters', b: +t.dataset.bk, c: 1 }; render(); return window.scrollTo(0, 0); }
+    if (t.dataset.bch) return openChapter(bv.b, +t.dataset.bch);
+    if (id === 'bibCont') { const l = B().last; return l ? openChapter(l[0], l[1]) : openChapter(42, 1); }
+    if (id === 'bibPrev') return stepChapter(-1);
+    if (id === 'bibNext') return stepChapter(1);
+    if (id === 'bibRetry') { loadBible(); return render(); }
+    if (id === 'bibRead') {
+      const k = bv.b + ':' + bv.c, rd = B().read;
+      if (rd[k]) { delete rd[k]; save(); return render(); }
+      rd[k] = new Date().toISOString(); save();
+      const st = bibleStats();
+      toast(BOOKS[bv.b] + ' ' + bv.c + ' lido · ' + pctTxt(st.pct) + ' da Bíblia');
+      if (bv.b < 65 || bv.c < BMETA[bv.b].length) return stepChapter(1);
+      return render();
+    }
+    if (t.dataset.mgo) { const [b, c] = t.dataset.mgo.split(':').map(Number); return openChapter(b, c); }
+    if (t.dataset.mdel) { delete B().marks[t.dataset.mdel]; save(); return render(); }
     if (id === 'dailyBtn') {
       const k = dayKey(new Date());
       if (S.dailyDone[k]) delete S.dailyDone[k]; else { S.dailyDone[k] = true; toast('Desafio cumprido. Continue assim!'); }
@@ -801,6 +958,14 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         S = fresh(); save(); location.hash = '#inicio'; render();
       });
     }
+  });
+  document.addEventListener('click', e => {
+    const v = e.target.closest('.reader .v');
+    if (!v || !BIBLE) return;
+    const n = +v.dataset.bv, k = bv.b + ':' + bv.c + ':' + n, mk = B().marks;
+    if (mk[k]) { delete mk[k]; v.classList.remove('mk'); }
+    else { mk[k] = { at: new Date().toISOString(), t: BIBLE[bv.b][bv.c - 1][n - 1] }; v.classList.add('mk'); toast(BOOKS[bv.b] + ' ' + bv.c + ':' + n + ' marcado'); }
+    save();
   });
   function keepText(fn) { const v = $('#jText') ? $('#jText').value : ''; fn(); if ($('#jText')) $('#jText').value = v; }
   document.addEventListener('keydown', e => {
