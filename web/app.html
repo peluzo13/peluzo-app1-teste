@@ -1,0 +1,1344 @@
+<title>Firme</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&display=swap">
+<style>
+/* Layout: single-column phone app, fixed bottom tab bar, one dark "candlelit stone" world. */
+:root {
+  --bg: #0c0e13;
+  --surface: #151922;
+  --surface-2: #1d2230;
+  --line: #2a3142;
+  --fg: #ecebe4;
+  --muted: #8e95a6;
+  --gold: #e4b35c;
+  --gold-soft: rgba(228,179,92,.14);
+  --danger: #e2705f;
+  --danger-soft: rgba(226,112,95,.14);
+  --ok: #82c79f;
+  --font-display: "Bricolage Grotesque", "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-verse: "Literata", Georgia, "Times New Roman", serif;
+  --radius: 18px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px calc(96px + env(safe-area-inset-bottom, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+main { max-width: 520px; margin: 0 auto; display: grid; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: 28px; font-weight: 800; }
+h2 { font-size: 20px; font-weight: 700; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+input, textarea {
+  font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px; width: 100%;
+}
+textarea { min-height: 96px; resize: vertical; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 18px; display: grid; gap: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spread { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+.btn { border-radius: 999px; padding: 12px 20px; font-weight: 600; background: var(--surface-2); }
+.btn.primary { background: var(--gold); color: #1a1408; }
+.btn.danger { background: var(--danger-soft); color: var(--danger); }
+.btn.ghost { background: transparent; border: 1px solid var(--line); }
+.btn.block { width: 100%; }
+.chip { border-radius: 999px; padding: 7px 13px; font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); }
+.chip[aria-pressed="true"] { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; padding-top: 4px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand svg { width: 34px; height: 34px; }
+.brand b { font-family: var(--font-display); font-size: 20px; font-weight: 800; }
+
+/* Streak hero */
+.hero { position: relative; display: grid; place-items: center; padding: 8px 0 4px; }
+.ring { width: min(78vw, 300px); max-width: 100%; aspect-ratio: 1; }
+.ring circle { fill: none; stroke-width: 10; }
+.ring .track { stroke: var(--surface-2); }
+.ring .prog { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+.hero-inner { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; }
+.days { font-family: var(--font-display); font-weight: 800; font-size: clamp(64px, 22vw, 96px); line-height: .95; font-variant-numeric: tabular-nums; }
+.clock { font-family: var(--font-display); font-weight: 500; font-size: 20px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.next { text-align: center; color: var(--muted); font-size: 14px; }
+.next b { color: var(--gold); font-weight: 600; }
+
+.sos-btn {
+  width: 100%; border-radius: var(--radius); padding: 18px; background: var(--danger); color: #1c0905;
+  font-family: var(--font-display); font-weight: 800; font-size: 19px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.sos-btn small { display: block; font-family: var(--font-body); font-weight: 500; font-size: 13px; opacity: .8; }
+
+.verse { font-family: var(--font-verse); font-style: italic; font-size: 17px; line-height: 1.55; }
+.ref { font-size: 13px; color: var(--gold); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.stat { background: var(--surface-2); border-radius: 14px; padding: 14px; display: grid; gap: 2px; }
+.stat b { font-family: var(--font-display); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+
+/* Challenge */
+.wall { background: #262b36; border-radius: var(--radius); padding: 20px 18px; display: grid; gap: 14px;
+  background-image: repeating-linear-gradient(0deg, transparent 0 30px, rgba(0,0,0,.18) 30px 32px),
+                    repeating-linear-gradient(90deg, transparent 0 62px, rgba(0,0,0,.14) 62px 64px); }
+.tally { display: flex; flex-wrap: wrap; gap: 12px 14px; min-height: 46px; align-items: center; }
+.tally svg { height: 42px; width: auto; }
+.tally path { stroke: #f1efe6; stroke-width: 3.2; stroke-linecap: round; fill: none; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 6px; }
+.cal .dow { font-size: 11px; text-align: center; color: var(--muted); font-weight: 600; }
+.cal .d { aspect-ratio: 1; border-radius: 10px; display: grid; place-items: center; font-size: 13px; font-variant-numeric: tabular-nums; background: var(--surface-2); color: var(--muted); }
+.cal .d.clean { background: var(--gold-soft); color: var(--gold); font-weight: 700; }
+.cal .d.fail { background: var(--danger-soft); color: var(--danger); font-weight: 700; text-decoration: line-through; }
+.cal .d.today { outline: 2px solid var(--gold); outline-offset: -2px; color: var(--fg); font-weight: 700; }
+.cal .d.before, .cal .d.future { opacity: .45; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* Lists */
+.list { display: grid; gap: 10px; }
+.entry { background: var(--surface-2); border-radius: 14px; padding: 14px; display: grid; gap: 6px; min-width: 0; }
+.entry p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.entry .meta { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--surface); color: var(--muted); }
+.tag.fail { color: var(--danger); background: var(--danger-soft); }
+.tag.win { color: var(--ok); background: rgba(130,199,159,.14); }
+.del { color: var(--muted); font-size: 12px; text-decoration: underline; }
+
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.badge { background: var(--surface-2); border-radius: 14px; padding: 12px 8px; text-align: center; display: grid; gap: 4px; opacity: .4; }
+.badge.got { opacity: 1; background: var(--gold-soft); }
+.badge b { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--gold); }
+.badge span { font-size: 11px; color: var(--muted); }
+
+.reason { display: flex; gap: 10px; align-items: flex-start; }
+.reason p { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.banner { background: var(--gold-soft); border: 1px solid rgba(228,179,92,.4); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+
+/* Incentivo */
+.feature { background: linear-gradient(160deg, #2a2418, var(--surface) 70%); border: 1px solid rgba(228,179,92,.3); }
+.res { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 8px; min-width: 0; }
+.res h3 { font-size: 15px; }
+.res .who { font-size: 13px; color: var(--gold); font-weight: 600; }
+.res p { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.res .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.link { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 8px 14px; background: var(--gold); color: #1a1408; font-weight: 600; font-size: 13px; text-decoration: none; }
+.link.spot { background: #1db954; color: #04140a; }
+.res.seen { opacity: .6; }
+.daily { display: flex; gap: 12px; align-items: flex-start; }
+.daily .box { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--gold); flex: none; display: grid; place-items: center; margin-top: 2px; }
+.daily[aria-pressed="true"] .box { background: var(--gold); }
+.daily[aria-pressed="true"] .box::after { content: ""; width: 10px; height: 6px; border-left: 2.5px solid #1a1408; border-bottom: 2.5px solid #1a1408; transform: rotate(-45deg) translate(1px,-1px); }
+.daily { text-align: left; width: 100%; }
+
+/* Bíblia */
+.bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--gold); border-radius: 999px; }
+.bar.thin { height: 4px; }
+.big-pct { font-family: var(--font-display); font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.book { background: var(--surface); border-radius: 12px; padding: 11px 12px; display: grid; gap: 6px; text-align: left; min-width: 0; }
+.book b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book small { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.book.done b { color: var(--gold); }
+.chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; }
+.chs button { aspect-ratio: 1; border-radius: 12px; background: var(--surface); font-variant-numeric: tabular-nums; font-weight: 600; }
+.chs button.read { background: var(--gold-soft); color: var(--gold); }
+.chs button.last { outline: 2px solid var(--gold); outline-offset: -2px; }
+.reader { font-family: var(--font-verse); font-style: normal; font-size: 18px; line-height: 1.75; }
+.reader .v { cursor: pointer; border-radius: 4px; padding: 1px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.reader .v sup { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 600; margin: 0 3px 0 2px; }
+.reader .v.mk { background: var(--gold-soft); box-shadow: inset 0 -2px 0 var(--gold); }
+.reader .v.mk sup { color: var(--gold); }
+.navrow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.back { color: var(--muted); font-size: 14px; padding: 6px 0; justify-self: start; text-align: left; }
+.mark-item { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 6px; text-align: left; width: 100%; }
+.mark-item .verse { font-size: 16px; }
+
+.plan-card { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 8px; }
+.plan-card h3 { font-size: 16px; }
+.plan-card .meta { font-size: 12px; color: var(--muted); }
+.reads { display: grid; gap: 6px; }
+.read-item { display: flex; gap: 10px; align-items: center; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; text-align: left; width: 100%; font-size: 15px; }
+.read-item .box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--line); flex: none; }
+.read-item.ok { color: var(--muted); }
+.read-item.ok .box { background: var(--ok); border-color: var(--ok); }
+.read-item span:last-child { margin-left: auto; color: var(--muted); font-size: 13px; }
+.day-row { display: grid; gap: 6px; }
+.day-row .spread b { font-size: 14px; }
+.devo .verse { font-size: 17px; }
+.devo h4 { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.devo .body { font-size: 16px; line-height: 1.65; }
+
+.cal .d { position: relative; }
+.cal .d.bib::after { content: ""; position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--fg); }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 9px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.chart .bar-m { fill: var(--gold); pointer-events: none; }
+.chart .bar-m.today { fill: var(--fg); }
+.chart .devo-dot { fill: var(--muted); pointer-events: none; }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .hit:hover + .bar-m, .chart .sel { opacity: .75; }
+.chart-tip { font-size: 13px; color: var(--muted); min-height: 20px; font-variant-numeric: tabular-nums; }
+.chart-tip b { color: var(--fg); font-weight: 600; }
+
+/* Tab bar */
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: rgba(17,20,27,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+nav.tabs .inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 10.5px; white-space: nowrap; color: var(--muted); text-decoration: none; padding: 4px 0; font-weight: 500; }
+nav.tabs a svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav.tabs a[aria-current="page"] { color: var(--gold); }
+
+/* Sheets & SOS overlay */
+.overlay { position: fixed; inset: 0; z-index: 40; background: rgba(5,6,9,.7); display: grid; align-items: end; }
+.sheet {
+  background: var(--surface); border-radius: 24px 24px 0 0; max-height: 92vh; overflow-y: auto;
+  padding: 22px max(18px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  display: grid; gap: 14px; width: 100%; max-width: 560px; margin: 0 auto;
+}
+.sos { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow-y: auto;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.sos .wrap { max-width: 520px; margin: 0 auto; display: grid; gap: 18px; }
+.breath { display: grid; place-items: center; padding: 10px 0; }
+.breath .orb { width: 190px; height: 190px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, rgba(228,179,92,.45), rgba(228,179,92,.08) 70%);
+  border: 1px solid rgba(228,179,92,.5); transform: scale(.62); transition-property: transform; transition-timing-function: ease-in-out; }
+.breath .orb span { font-family: var(--font-display); font-weight: 700; font-size: 22px; }
+.steps { display: grid; gap: 8px; }
+.step { display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: 14px; padding: 12px 14px; text-align: left; width: 100%; }
+.step .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); flex: none; display: grid; place-items: center; }
+.step[aria-pressed="true"] .box { background: var(--ok); border-color: var(--ok); }
+.step[aria-pressed="true"] .box::after { content: ""; width: 9px; height: 5px; border-left: 2px solid #0c0e13; border-bottom: 2px solid #0c0e13; transform: rotate(-45deg) translate(1px,-1px); }
+.timer { font-family: var(--font-display); font-size: 15px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+  background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; font-size: 14px; max-width: calc(100% - 32px); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .breath .orb { transition: none !important; }
+  .ring .prog { transition: none; }
+}
+</style>
+
+<main id="app"></main>
+
+<nav class="tabs" aria-label="Seções">
+  <div class="inner">
+    <a href="#inicio" data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h10"/></svg>Início</a>
+    <a href="#desafio" data-tab="desafio"><svg viewBox="0 0 24 24"><path d="M5 5v14M9 5v14M13 5v14M17 5v14M3 17 19 7"/></svg>Desafio</a>
+    <a href="#incentivo" data-tab="incentivo"><svg viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2-4.7.3 1.7 1.2 2.7 2 2.7 0-3 0-5.5 1-8z"/></svg>Incentivo</a>
+    <a href="#biblia" data-tab="biblia"><svg viewBox="0 0 24 24"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-3"/><path d="M12 7v7M9.5 9.5h5"/></svg>Bíblia</a>
+    <a href="#diario" data-tab="diario"><svg viewBox="0 0 24 24"><path d="M6 3h11a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>Diário</a>
+    <a href="#perfil" data-tab="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</a>
+  </div>
+</nav>
+
+<div id="sheetHost"></div>
+<div id="sosHost"></div>
+<div id="toastHost"></div>
+
+<script>
+(() => {
+  const KEY = 'liberto.v1';
+  const DAY = 86400000;
+
+  const VERSES = [
+    ['Não vos sobreveio tentação que não fosse humana; mas Deus é fiel e não permitirá que sejais tentados além das vossas forças; pelo contrário, juntamente com a tentação, vos proverá livramento.', '1 Coríntios 10:13'],
+    ['Para a liberdade foi que Cristo nos libertou. Permanecei, pois, firmes e não vos submetais, de novo, a jugo de escravidão.', 'Gálatas 5:1'],
+    ['Cria em mim, ó Deus, um coração puro e renova dentro em mim um espírito inabalável.', 'Salmos 51:10'],
+    ['Vigiai e orai, para que não entreis em tentação; o espírito, na verdade, está pronto, mas a carne é fraca.', 'Mateus 26:41'],
+    ['Tudo posso naquele que me fortalece.', 'Filipenses 4:13'],
+    ['Sujeitai-vos, portanto, a Deus; mas resisti ao diabo, e ele fugirá de vós.', 'Tiago 4:7'],
+    ['De que maneira poderá o jovem guardar puro o seu caminho? Observando-o segundo a tua palavra.', 'Salmos 119:9'],
+    ['Foge, outrossim, das paixões da mocidade. Segue a justiça, a fé, o amor e a paz com os que, de coração puro, invocam o Senhor.', '2 Timóteo 2:22'],
+    ['E não vos conformeis com este século, mas transformai-vos pela renovação da vossa mente.', 'Romanos 12:2'],
+    ['Os que esperam no Senhor renovam as suas forças, sobem com asas como águias, correm e não se cansam.', 'Isaías 40:31'],
+    ['Bem-aventurados os limpos de coração, porque verão a Deus.', 'Mateus 5:8'],
+    ['Fugi da impureza.', '1 Coríntios 6:18'],
+    ['Acheguemo-nos, portanto, confiadamente, junto ao trono da graça, a fim de recebermos misericórdia e acharmos graça para socorro em ocasião oportuna.', 'Hebreus 4:16'],
+    ['As misericórdias do Senhor são a causa de não sermos consumidos; renovam-se cada manhã. Grande é a tua fidelidade.', 'Lamentações 3:22-23'],
+    ['Agora, pois, já nenhuma condenação há para os que estão em Cristo Jesus.', 'Romanos 8:1'],
+    ['Se confessarmos os nossos pecados, ele é fiel e justo para nos perdoar os pecados e nos purificar de toda injustiça.', '1 João 1:9'],
+  ];
+  const GRACE = [VERSES[15], VERSES[13], VERSES[14]];
+
+  const MILESTONES = [
+    [1, 'Primeiro dia'], [3, 'Três dias'], [7, 'Uma semana'], [14, 'Duas semanas'], [21, '21 dias'],
+    [30, 'Um mês'], [60, 'Dois meses'], [90, '90 dias'], [180, 'Meio ano'], [365, 'Um ano'],
+  ];
+  const TRIGGERS = ['Tédio', 'Solidão', 'Estresse', 'Cansaço', 'Ansiedade', 'Redes sociais', 'Madrugada', 'Celular na cama'];
+  const MOODS = ['Firme', 'Tentado', 'Fraco', 'Grato'];
+  const SOS_STEPS = [
+    'Larguei o celular / saí da tela',
+    'Levantei e mudei de cômodo',
+    'Fiz uma oração curta',
+    'Tomei um banho frio ou lavei o rosto',
+    'Fiz 20 flexões ou saí para caminhar',
+    'Mandei mensagem para alguém de confiança',
+  ];
+
+  // YouTube: busca (sempre abre). "Em alta" = mais vistos do mês. Spotify: só perfis verificados.
+  const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  const ytHot = q => yt(q) + '&sp=CAMSAggE';
+  const ytTop = q => yt(q) + '&sp=CAM%3D';
+  const spShow = id => 'https://open.spotify.com/show/' + id;
+  const RESOURCES = [
+    // Em alta
+    { id: 'h1', type: 'Em alta', title: 'Pregações mais vistas do mês', who: 'YouTube · este mês', desc: 'As pregações que mais estão sendo assistidas agora no Brasil.', yt: ytHot('pregação evangélica') },
+    { id: 'h2', type: 'Em alta', title: 'Pregações para jovens em alta', who: 'YouTube · este mês', desc: 'Mensagens recentes e mais assistidas para a juventude.', yt: ytHot('pregação para jovens') },
+    { id: 'h3', type: 'Em alta', title: 'Mais vistas sobre pureza', who: 'YouTube · mais vistos', desc: 'As pregações sobre pureza sexual com mais visualizações.', yt: ytTop('pregação pureza sexual') },
+    { id: 'h4', type: 'Em alta', title: 'Mais vistos sobre vencer a pornografia', who: 'YouTube · mais vistos', desc: 'Vídeos cristãos mais assistidos sobre largar o vício.', yt: ytTop('como vencer a pornografia cristão') },
+    // Pregações
+    { id: 'p1', type: 'Pregações', title: 'Pregação expositiva', who: 'Augustus Nicodemus', desc: 'Exposição bíblica clara e sóbria. No YouTube, a busca já vai direto ao tema pureza.', yt: yt('Augustus Nicodemus pureza sexual'), sp: spShow('1HOBamzxOgg72MIKszmp1u') },
+    { id: 'p2', type: 'Pregações', title: 'José e a vitória sobre a tentação', who: 'Hernandes Dias Lopes', desc: 'Gênesis 39: fugir da tentação quando ninguém está vendo. No Spotify, as pregações da IP Pinheiros.', yt: yt('Hernandes Dias Lopes José tentação'), sp: spShow('4Ab5dKpP4TxEXK1kfTqklu') },
+    { id: 'p3', type: 'Pregações', title: 'Sermões', who: 'Yago Martins', desc: 'Pregações bíblicas e diretas, com aplicação para a vida real.', yt: yt('Yago Martins pornografia'), sp: spShow('2jvzfoN67DpyhbYpO8r3La') },
+    { id: 'p4', type: 'Pregações', title: 'Pureza e intimidade com Deus', who: 'Luciano Subirá', desc: 'Santidade como fruto de uma vida de devoção, não só de esforço.', yt: yt('Luciano Subirá pureza sexual') },
+    { id: 'p5', type: 'Pregações', title: 'Pregações para jovens sobre pureza', who: 'Lucinho Barreto', desc: 'Linguagem direta, para quem precisa de um chacoalhão e de esperança.', yt: yt('Lucinho Barreto pureza sexual') },
+    { id: 'p6', type: 'Pregações', title: 'Vencendo a tentação', who: 'Deive Leonardo', desc: 'Mensagens para a juventude sobre identidade e santidade.', yt: yt('Deive Leonardo pureza tentação') },
+    { id: 'p7', type: 'Pregações', title: 'Pecado sexual e o evangelho (legendado)', who: 'Paul Washer', desc: 'Sermões fortes sobre arrependimento verdadeiro.', yt: yt('Paul Washer pecado sexual legendado') },
+    // Vídeos
+    { id: 'v1', type: 'Vídeos', title: 'Pornografia: como vencer', who: 'Dois Dedos de Teologia', desc: 'Teologia bem fundamentada com aplicação prática.', yt: yt('Dois Dedos de Teologia pornografia') },
+    { id: 'v2', type: 'Vídeos', title: 'Estratégias para lutar contra a luxúria', who: 'John Piper', desc: 'O método A.N.T.H.E.M.: evitar, dizer não, voltar a mente, segurar a promessa, aproveitar algo melhor, mover-se.', yt: yt('John Piper luxúria legendado') },
+    { id: 'v3', type: 'Vídeos', title: 'The Great Porn Experiment (TEDx)', who: 'Gary Wilson', desc: 'Como a pornografia afeta o cérebro e por que parar devolve energia e foco.', yt: yt('Gary Wilson The Great Porn Experiment legendado') },
+    { id: 'v4', type: 'Vídeos', title: 'Pornografia e o evangelho', who: 'Voltemos ao Evangelho', desc: 'Conteúdo curto e bíblico sobre culpa, graça e mudança real.', yt: yt('Voltemos ao Evangelho pornografia') },
+    // Motivação
+    { id: 'm1', type: 'Motivação', title: 'Motivação cristã', who: 'YouTube', desc: 'Vídeos curtos para levantar a cabeça e lembrar quem você é em Cristo.', yt: ytTop('motivação cristã') },
+    { id: 'm2', type: 'Motivação', title: 'Disciplina vence a vontade', who: 'YouTube', desc: 'Vídeos sobre disciplina, constância e domínio próprio.', yt: ytTop('motivação disciplina foco') },
+    { id: 'm3', type: 'Motivação', title: 'Fé, coragem e superação', who: 'Nando Pinheiro', desc: 'Mensagens para fortalecer a mente e seguir em frente com foco.', yt: yt('Nando Pinheiro motivação'), sp: spShow('1bgfyvoyJr5QbuzC0bkHt7') },
+    { id: 'm4', type: 'Motivação', title: 'Música para foco e concentração', who: 'YouTube', desc: 'Para estudar ou trabalhar sem a mente vagar.', yt: ytTop('música para foco e concentração') },
+    // Treino
+    { id: 't1', type: 'Treino', title: 'Treino em casa sem equipamento', who: 'YouTube · 20 minutos', desc: 'Quando bater a vontade, levante e treine. Gasta a energia e limpa a cabeça.', yt: ytTop('treino em casa sem equipamento 20 minutos') },
+    { id: 't2', type: 'Treino', title: 'HIIT de 15 minutos', who: 'YouTube', desc: 'Treino intenso e curto para quebrar a ansiedade na hora.', yt: ytTop('treino HIIT 15 minutos em casa') },
+    { id: 't3', type: 'Treino', title: 'Desafio de flexões', who: 'YouTube', desc: 'Progressão de flexões para fazer todo dia e ver evolução.', yt: ytTop('desafio de flexões 30 dias') },
+    { id: 't4', type: 'Treino', title: 'Música para treinar', who: 'YouTube', desc: 'Playlist de motivação para o treino.', yt: ytTop('música motivação treino academia') },
+    // Podcasts (Spotify)
+    { id: 'c1', type: 'Podcasts', title: 'Vida Pura', who: 'Ministério Vida Pura · português', desc: 'Podcast de um ministério que aconselha pessoas com vício em pornografia, com base bíblica e neurociência.', sp: spShow('69IOPfmMKvQiG99aagNZv3') },
+    { id: 'c2', type: 'Podcasts', title: 'Em Poucas Palavras', who: 'Augustus Nicodemus · 15 min', desc: 'Respostas curtas a dúvidas comuns da fé cristã.', sp: spShow('1675FPM5Ngt2JzXSN4h5l0') },
+    { id: 'c3', type: 'Podcasts', title: 'Ask Pastor John', who: 'John Piper · inglês', desc: 'Respostas curtas a perguntas reais sobre luxúria, culpa e recomeço.', sp: spShow('5vPg9kNdtiKdsjAaox2jOC') },
+    { id: 'c4', type: 'Podcasts', title: 'Light + Truth', who: 'John Piper · inglês', desc: 'Sermões clássicos de Piper em episódios de 20 minutos.', sp: spShow('6JcvtQkpUuFOKmFEn6r0f5') },
+    { id: 'c5', type: 'Podcasts', title: 'Pure Life Ministries Podcast', who: 'Pure Life Ministries · inglês', desc: 'Programa semanal para quem luta contra o pecado sexual.', sp: spShow('2q41vtreFkC8UkrRibpF65') },
+  ];
+  const RTYPES = ['Todos', 'Em alta', 'Pregações', 'Vídeos', 'Motivação', 'Treino', 'Podcasts'];
+  const DAILY = [
+    'Ore 5 minutos ao acordar, antes de pegar o celular.',
+    'Deixe o celular fora do quarto esta noite.',
+    'Leia o capítulo de Provérbios do dia de hoje.',
+    'Faça 30 minutos de exercício.',
+    'Mande uma mensagem encorajando um amigo.',
+    'Escreva no diário 3 coisas pelas quais você é grato.',
+    'Silencie ou apague um app que te faz tropeçar.',
+    'Durma antes das 23h.',
+    'Memorize 1 Coríntios 10:13.',
+    'Ajude alguém sem que te peçam.',
+    'Fique 1 hora sem tela depois do jantar.',
+    'Conte uma luta sua a alguém de confiança.',
+    'Leia o Salmo 51 devagar, como oração.',
+    'Caminhe 20 minutos ao ar livre.',
+  ];
+  let rFilter = 'Todos';
+
+  // ---------- state ----------
+  function fresh() {
+    return {
+      firstStart: new Date().toISOString(),
+      relapses: [], journal: [], victories: [], checkins: {},
+      reasons: [
+        'Quero ter a mente limpa e presente para as pessoas que amo.',
+        'Quero honrar a Deus com o meu corpo.',
+        'Quero recuperar meu tempo, minha energia e meu foco.',
+      ],
+      onboarded: false,
+      seen: {}, links: [], dailyDone: {},
+      bible: { read: {}, marks: {}, last: null, plan: null, devo: {} },
+    };
+  }
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s && s.firstStart) return Object.assign(fresh(), s);
+    } catch (e) {}
+    return null;
+  }
+  function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function save() { S.updatedAt = Date.now(); saveLocal(); cloudSchedule(); }
+  const loaded = load();
+  let S = loaded || fresh();
+  const pristine = !loaded; // aparelho novo: a conta tem prioridade
+  if (loaded && !S.updatedAt) S.updatedAt = 1; // dados de antes da conta: valem, mas perdem para um salvamento real mais novo
+  const untouched = () => pristine && (S.updatedAt || 0) < 2; // ninguém usou o app neste aparelho ainda
+  const isEmptyState = st => !st.onboarded && !(st.relapses || []).length && !(st.journal || []).length && !(st.victories || []).length && !Object.keys(((st.bible || {}).read) || {}).length && !Object.keys(((st.bible || {}).devo) || {}).length;
+
+  // ---------- Conta (progresso salvo na conta Claude) ----------
+  const CLOUD = { ref: null, status: 'checking', name: '', avatar: '', lastSync: 0, ready: false, timer: null, chain: Promise.resolve() };
+  function cloudSchedule() {
+    if (!CLOUD.ready || !CLOUD.ref) return;
+    clearTimeout(CLOUD.timer);
+    CLOUD.timer = setTimeout(cloudPush, 1200);
+  }
+  function cloudPush() {
+    if (!CLOUD.ref || untouched() || isEmptyState(S) && !S.updatedAt) return Promise.resolve();
+    CLOUD.chain = CLOUD.chain.then(async () => {
+      const body = JSON.stringify(S);
+      if (body.length > 240000) { CLOUD.status = 'big'; refreshAccount(); return; }
+      CLOUD.status = 'saving'; refreshAccount();
+      try {
+        await CLOUD.ref.set({ state: body, updatedAt: S.updatedAt || Date.now(), v: 1 });
+        CLOUD.status = 'ok'; CLOUD.lastSync = Date.now();
+      } catch (e) { CLOUD.status = 'error'; }
+      refreshAccount();
+    });
+    return CLOUD.chain;
+  }
+  const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), ms))]);
+  async function cloudPull(first) {
+    CLOUD.status = 'saving'; refreshAccount();
+    try {
+      const snap = await withTimeout(CLOUD.ref.get(), 10000);
+      if (snap.exists) {
+        const d = snap.data() || {};
+        let remote = null; try { remote = JSON.parse(d.state); } catch (e) {}
+        const valid = remote && remote.firstStart && !isEmptyState(remote);
+        const rT = (valid && remote.updatedAt) || 0, lT = S.updatedAt || 0;
+        if (valid && ((first && untouched()) || rT > lT)) {
+          S = Object.assign(fresh(), remote); saveLocal(); render();
+          if (first) toast('Progresso carregado da sua conta');
+        } else if (!untouched() && lT > rT) { CLOUD.ready = true; return cloudPush(); }
+      } else if (!untouched()) { CLOUD.ready = true; return cloudPush(); }
+      CLOUD.status = 'ok'; CLOUD.lastSync = Date.now();
+    } catch (e) { CLOUD.status = 'error'; }
+    CLOUD.ready = true; refreshAccount();
+  }
+  async function cloudInit() {
+    try {
+      if (!window.claude || !window.claude.use) { CLOUD.status = 'local'; return refreshAccount(); }
+      const [user, db] = await Promise.all([window.claude.use('user'), window.claude.use('db')]);
+      const id = user ? await user.id() : null;
+      if (!user || !db || !id) { CLOUD.status = 'local'; return refreshAccount(); }
+      try { const me = await user.me(); CLOUD.name = me.name || ''; CLOUD.avatar = me.avatarUrl || ''; } catch (e) {}
+      CLOUD.ref = db.doc('data/users/' + id + '/progress');
+      await cloudPull(true);
+    } catch (e) { CLOUD.status = 'error'; refreshAccount(); }
+  }
+  function accountCard() {
+    const st = CLOUD.status;
+    const ago = CLOUD.lastSync ? new Date(CLOUD.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+    const line = {
+      checking: 'Procurando sua conta…',
+      saving: 'Sincronizando…',
+      ok: 'Progresso salvo na sua conta' + (ago ? ' às ' + ago : ''),
+      error: 'Não consegui salvar agora. Seus dados estão seguros neste aparelho e vão subir na próxima sincronização.',
+      big: 'Seus dados ficaram grandes demais para a nuvem. Apague entradas antigas do diário.',
+      local: 'Salvo só neste aparelho. Abra o Firme pelo link do Claude, com a sua conta conectada, para guardar o progresso na nuvem.',
+    }[st] || '';
+    const dot = { ok: 'var(--ok)', saving: 'var(--gold)', checking: 'var(--gold)', error: 'var(--danger)', big: 'var(--danger)', local: 'var(--muted)' }[st];
+    return `<section class="card" id="accountCard">
+      <div class="row" style="flex-wrap:nowrap">
+        ${CLOUD.avatar ? `<img src="${esc(CLOUD.avatar)}" alt="" style="width:44px;height:44px;border-radius:50%;flex:none">` : `<span style="width:44px;height:44px;border-radius:50%;background:var(--surface-2);flex:none;display:grid;place-items:center">${LOGO.replace('aria-hidden', 'width="26" height="26" aria-hidden')}</span>`}
+        <div style="min-width:0;display:grid;gap:2px">
+          <b style="font-family:var(--font-display);font-size:17px;overflow-wrap:anywhere">${CLOUD.ref ? esc(CLOUD.name || 'Sua conta') : 'Sem conta conectada'}</b>
+          <span style="font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:baseline"><i style="width:8px;height:8px;border-radius:50%;background:${dot};flex:none;display:inline-block"></i><span>${line}</span></span>
+        </div>
+      </div>
+      ${CLOUD.ref ? '<button class="btn ghost" id="syncNow">Sincronizar agora</button><p class="muted" style="font-size:12px">Seu progresso fica numa área privada da sua conta: só você vê. Ao abrir o Firme em outro aparelho com a mesma conta, tudo aparece lá.</p>' : ''}
+    </section>`;
+  }
+  function refreshAccount() {
+    const el = document.getElementById('accountCard');
+    if (el) el.outerHTML = accountCard();
+  }
+
+  // ---------- helpers ----------
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const dayKey = (d) => { d = new Date(d); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const fmtDate = (d) => new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const toLocalInput = (d) => { d = new Date(d); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const sortedRelapses = () => S.relapses.slice().sort((a, b) => new Date(a.at) - new Date(b.at));
+  function currentStart() {
+    const r = sortedRelapses();
+    const last = r.length ? new Date(r[r.length - 1].at) : null;
+    const first = new Date(S.firstStart);
+    return last && last > first ? last : first;
+  }
+  function bestStreak() {
+    const pts = [new Date(S.firstStart), ...sortedRelapses().map(r => new Date(r.at)).filter(d => d >= new Date(S.firstStart)), new Date()];
+    let best = 0;
+    for (let i = 1; i < pts.length; i++) best = Math.max(best, pts[i] - pts[i - 1]);
+    return best;
+  }
+  const verseOfDay = () => VERSES[Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / DAY) % VERSES.length];
+  function milestoneInfo(ms) {
+    const d = ms / DAY;
+    let prev = 0, next = null;
+    for (const [m, name] of MILESTONES) { if (d >= m) prev = m; else { next = [m, name]; break; } }
+    if (!next) { const m = Math.ceil((d + 0.0001) / 365) * 365; next = [m, Math.round(m / 365) + ' anos']; prev = m - 365; }
+    return { prev, next, pct: Math.min(1, (d - prev) / (next[0] - prev)) };
+  }
+  function toast(msg) {
+    const host = $('#toastHost');
+    host.innerHTML = '<div class="toast" role="status">' + esc(msg) + '</div>';
+    clearTimeout(toast.t); toast.t = setTimeout(() => { host.innerHTML = ''; }, 2600);
+  }
+
+  const LOGO = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="26" fill="#1d2230"/><g fill="#e4b35c"><rect x="44" y="16" width="12" height="62" rx="2"/><rect x="24" y="30" width="52" height="11" rx="2"/><rect x="56" y="51" width="15" height="10" rx="2"/></g><rect x="22" y="80" width="56" height="6" rx="3" fill="#ecebe4"/></svg>';
+
+  // ---------- views ----------
+  function viewInicio() {
+    const v = verseOfDay();
+    const today = dayKey(new Date());
+    const mood = S.checkins[today];
+    return `
+      <header class="top">
+        <div class="brand">${LOGO}<b>Firme</b></div>
+        <button class="btn ghost" id="relapseBtn" style="padding:8px 14px;font-size:13px">Registrar recaída</button>
+      </header>
+      ${S.onboarded ? '' : `
+      <div class="banner">
+        <h3>Quando começou a sua jornada?</h3>
+        <p class="muted" style="font-size:14px">O contador começou agora. Se você está limpo há mais tempo, informe a data da última recaída.</p>
+        <input type="datetime-local" id="onbDate" value="${toLocalInput(S.firstStart)}" max="${toLocalInput(new Date())}">
+        <div class="row"><button class="btn primary" id="onbSave">Salvar data</button><button class="btn ghost" id="onbSkip">Começar agora</button></div>
+      </div>`}
+      <section class="hero" aria-label="Tempo limpo">
+        <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="track" cx="100" cy="100" r="88"/>
+          <circle class="prog" id="ringProg" cx="100" cy="100" r="88" transform="rotate(-90 100 100)" stroke-dasharray="552.92" stroke-dashoffset="552.92"/>
+        </svg>
+        <div class="hero-inner">
+          <span class="eyebrow">Dias limpo</span>
+          <span class="days" id="days">0</span>
+          <span class="clock" id="clock">00:00:00</span>
+        </div>
+      </section>
+      <p class="next" id="nextMs"></p>
+      <button class="sos-btn" id="sosBtn"><span>Estou sendo tentado<small>Abrir o botão de pânico</small></span></button>
+      <section class="card">
+        <span class="eyebrow">Versículo do dia</span>
+        <p class="verse">“${esc(v[0])}”</p>
+        <span class="ref">${esc(v[1])}</span>
+      </section>
+      <section class="card">
+        <div class="spread"><h3>Como você está hoje?</h3>${mood ? '<span class="tag">salvo</span>' : ''}</div>
+        <div class="row" id="moods">${MOODS.map(m => `<button class="chip" aria-pressed="${mood === m}" data-mood="${m}">${m}</button>`).join('')}</div>
+      </section>
+      <section class="stats">
+        <div class="stat"><b>${Math.floor(bestStreak() / DAY)}</b><span>Melhor sequência (dias)</span></div>
+        <div class="stat"><b>${S.victories.length}</b><span>Tentações vencidas</span></div>
+      </section>`;
+  }
+
+  function tallySvg(n) {
+    // one group of up to 5 strokes; 5th crosses the four
+    const xs = [6, 16, 26, 36];
+    let p = '';
+    for (let i = 0; i < Math.min(n, 4); i++) p += `<path d="M${xs[i]} ${4 + (i % 2)} L${xs[i] + 1} 38"/>`;
+    if (n >= 5) p += '<path d="M1 30 L42 10"/>';
+    return `<svg viewBox="0 0 44 42" aria-hidden="true">${p}</svg>`;
+  }
+
+  function viewDesafio() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const daysIn = new Date(y, m + 1, 0).getDate();
+    const monthName = now.toLocaleString('pt-BR', { month: 'long' });
+    const relDays = new Set(S.relapses.map(r => dayKey(r.at)));
+    const bibDays = new Set([...Object.values(B().read), ...Object.values(B().devo || {})].map(dayKey));
+    const todayK = dayKey(now), startK = dayKey(S.firstStart);
+    let clean = 0, fails = 0;
+    const cells = [];
+    const offset = new Date(y, m, 1).getDay();
+    for (let i = 0; i < offset; i++) cells.push('<span></span>');
+    for (let d = 1; d <= daysIn; d++) {
+      const k = dayKey(new Date(y, m, d));
+      let cls = 'future';
+      if (k > todayK) cls = 'future';
+      else if (k < startK) cls = 'before';
+      else if (relDays.has(k)) { cls = 'fail'; fails++; }
+      else if (k === todayK) cls = 'today';
+      else { cls = 'clean'; clean++; }
+      cells.push(`<span class="d ${cls} ${bibDays.has(k) ? 'bib' : ''}">${d}</span>`);
+    }
+    const groups = [];
+    for (let left = clean; left > 0; left -= 5) groups.push(tallySvg(Math.min(5, left)));
+    const bib = bibleMonth(y, m, daysIn);
+    const remaining = daysIn - now.getDate();
+    return `
+      <header class="top"><h1>Desafio de ${monthName}</h1></header>
+      <p class="muted">Você aguenta o mês inteiro sem recair? Cada dia limpo vira um risco na parede.</p>
+      <section class="wall" aria-label="${clean} dias limpos neste mês">
+        <div class="tally">${groups.join('') || '<span style="color:#b9b6ab;font-size:14px">O primeiro risco aparece amanhã.</span>'}</div>
+        <div class="spread" style="color:#d9d6cc"><span><b style="font-family:var(--font-display);font-size:22px">${clean}</b> de ${daysIn} dias</span><span style="font-size:13px">${remaining} ${remaining === 1 ? 'dia restante' : 'dias restantes'}</span></div>
+      </section>
+      <section class="card">
+        <div class="cal">${['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(x => `<span class="dow">${x}</span>`).join('')}${cells.join('')}</div>
+        <div class="legend"><span><i style="background:var(--gold)"></i>Limpo</span><span><i style="background:var(--danger)"></i>Recaída</span><span><i style="border:2px solid var(--gold)"></i>Hoje</span><span><i style="background:var(--fg);border-radius:50%;width:6px;height:6px;vertical-align:1px"></i>Leu a Bíblia</span></div>
+      </section>
+      <section class="stats">
+        <div class="stat"><b>${clean}</b><span>Dias limpos no mês</span></div>
+        <div class="stat"><b>${fails}</b><span>Recaídas no mês</span></div>
+      </section>
+      <section class="card">
+        <div class="spread"><h2>Bíblia em ${monthName}</h2><a href="#biblia" class="chip" style="text-decoration:none;color:var(--fg)">Ler agora</a></div>
+        <div class="stats">
+          <div class="stat"><b>${bib.days}</b><span>Dias com leitura no mês</span></div>
+          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos lendo</span></div>
+          <div class="stat"><b>${bib.chapters}</b><span>Capítulos no mês</span></div>
+          <div class="stat"><b>${bib.devos}</b><span>Devocionais no mês</span></div>
+        </div>
+        <span class="eyebrow">Capítulos lidos por dia</span>
+        ${bibleChart(bib, daysIn, now.getDate())}
+        <p class="chart-tip" id="chartTip">Toque numa barra para ver o dia.</p>
+        <p class="muted" style="font-size:12px">O ponto embaixo marca os dias em que você fez só o devocional.</p>
+      </section>`;
+  }
+  function bibleMonth(y, m, daysIn) {
+    const bb = B(), per = Array(daysIn + 1).fill(0), dv = Array(daysIn + 1).fill(false);
+    const inMonth = iso => { const d = new Date(iso); return d.getFullYear() === y && d.getMonth() === m ? d.getDate() : 0; };
+    Object.values(bb.read).forEach(iso => { const d = inMonth(iso); if (d) per[d]++; });
+    Object.values(bb.devo || {}).forEach(iso => { const d = inMonth(iso); if (d) dv[d] = true; });
+    const allDays = new Set([...Object.values(bb.read), ...Object.values(bb.devo || {})].map(dayKey));
+    let streak = 0; const t = new Date(); t.setHours(12, 0, 0, 0);
+    if (!allDays.has(dayKey(t))) t.setDate(t.getDate() - 1);
+    while (allDays.has(dayKey(t))) { streak++; t.setDate(t.getDate() - 1); }
+    let days = 0; for (let d = 1; d <= daysIn; d++) if (per[d] || dv[d]) days++;
+    return { per, dv, days, streak, chapters: per.reduce((a, b) => a + b, 0), devos: dv.filter(Boolean).length };
+  }
+  function bibleChart(bib, daysIn, today) {
+    const W = 340, H = 140, L = 22, R = 4, T = 10, Bm = 22, ph = H - T - Bm;
+    const step = (W - L - R) / daysIn, bw = Math.max(3, step - 2);
+    const mx = Math.max(4, ...bib.per);
+    const top = Math.ceil(mx / 2) * 2, yv = v => T + ph - v / top * ph;
+    let g = '';
+    [0, top / 2, top].forEach(v => { g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${yv(v)}" y2="${yv(v)}"/><text class="axis" x="${L - 5}" y="${yv(v) + 3}" text-anchor="end">${v}</text>`; });
+    const ticks = [1, 5, 10, 15, 20, 25, daysIn].filter((v, i, a) => a.indexOf(v) === i && !(v !== daysIn && daysIn - v < 3));
+    ticks.forEach(d => { g += `<text class="axis" x="${L + (d - .5) * step}" y="${H - 6}" text-anchor="middle">${d}</text>`; });
+    for (let d = 1; d <= daysIn; d++) {
+      const x = L + (d - 1) * step + (step - bw) / 2, v = bib.per[d];
+      g += `<rect class="hit" data-bar="${d}" x="${L + (d - 1) * step}" y="${T}" width="${step}" height="${ph + 8}"/>`;
+      if (v) {
+        const h = Math.max(4, v / top * ph), y0 = T + ph, r = Math.min(4, bw / 2);
+        g += `<path class="bar-m ${d === today ? 'today' : ''}" d="M${x} ${y0}V${y0 - h + r}q0 -${r} ${r} -${r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${y0}z"/>`;
+      } else if (bib.dv[d]) g += `<circle class="devo-dot" cx="${x + bw / 2}" cy="${T + ph - 3}" r="2.5"/>`;
+    }
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Capítulos lidos por dia neste mês: ${bib.chapters} no total">${g}</svg>`;
+  }
+  function showBarTip(d) {
+    const now = new Date(), daysIn = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const bib = bibleMonth(now.getFullYear(), now.getMonth(), daysIn), n = bib.per[d];
+    const label = new Date(now.getFullYear(), now.getMonth(), d).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+    const tip = $('#chartTip'); if (!tip) return;
+    tip.innerHTML = `<b>${label}</b> · ${n} ${n === 1 ? 'capítulo' : 'capítulos'}${bib.dv[d] ? ' · devocional feito' : ''}`;
+    document.querySelectorAll('.chart .sel').forEach(e => e.classList.remove('sel'));
+    const h = document.querySelector(`.chart .hit[data-bar="${d}"]`); if (h && h.nextElementSibling && h.nextElementSibling.classList.contains('bar-m')) h.nextElementSibling.classList.add('sel');
+  }
+  document.addEventListener('click', e => { const h = e.target.closest && e.target.closest('.chart .hit'); if (h) showBarTip(+h.dataset.bar); });
+  document.addEventListener('mouseover', e => { const h = e.target.closest && e.target.closest('.chart .hit'); if (h) showBarTip(+h.dataset.bar); });
+
+  let draft = { mood: null, triggers: [] };
+  function viewDiario() {
+    const items = [
+      ...S.journal.map(j => ({ ...j, kind: 'note' })),
+      ...S.relapses.map(r => ({ ...r, kind: 'relapse' })),
+      ...S.victories.map(v => ({ ...v, kind: 'win' })),
+    ].sort((a, b) => new Date(b.at) - new Date(a.at));
+    return `
+      <header class="top"><h1>Diário</h1></header>
+      <section class="card">
+        <h3>Como foi o seu dia?</h3>
+        <textarea id="jText" placeholder="O que você sentiu, o que te ajudou, o que quase te derrubou…"></textarea>
+        <span class="eyebrow">Humor</span>
+        <div class="row">${MOODS.map(m => `<button class="chip" data-jmood="${m}" aria-pressed="${draft.mood === m}">${m}</button>`).join('')}</div>
+        <span class="eyebrow">Gatilhos</span>
+        <div class="row">${TRIGGERS.map(t => `<button class="chip" data-jtrig="${t}" aria-pressed="${draft.triggers.includes(t)}">${t}</button>`).join('')}</div>
+        <button class="btn primary" id="jSave">Salvar no diário</button>
+      </section>
+      <section class="list" aria-label="Histórico">
+        ${items.length ? items.map(it => `
+          <article class="entry">
+            <div class="meta"><span>${fmtDate(it.at)}</span>
+              ${it.kind === 'relapse' ? '<span class="tag fail">Recaída</span>' : it.kind === 'win' ? '<span class="tag win">Tentação vencida</span>' : it.mood ? `<span class="tag">${esc(it.mood)}</span>` : ''}
+            </div>
+            ${it.text || it.note ? `<p>${esc(it.text || it.note)}</p>` : ''}
+            ${it.triggers && it.triggers.length ? `<div class="row">${it.triggers.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+            <div><button class="del" data-del="${it.kind}:${esc(it.id)}">Apagar</button></div>
+          </article>`).join('') : '<p class="muted">Nada registrado ainda. Escreva sua primeira entrada acima.</p>'}
+      </section>`;
+  }
+
+  function viewPerfil() {
+    const cur = (Date.now() - currentStart()) / DAY;
+    const best = bestStreak() / DAY;
+    const total = (Date.now() - new Date(S.firstStart)) / DAY;
+    const reached = Math.max(cur, best);
+    return `
+      <header class="top"><h1>Perfil</h1></header>
+      ${accountCard()}
+      <section class="stats">
+        <div class="stat"><b>${Math.floor(cur)}</b><span>Sequência atual</span></div>
+        <div class="stat"><b>${Math.floor(best)}</b><span>Melhor sequência</span></div>
+        <div class="stat"><b>${S.relapses.length}</b><span>Recaídas registradas</span></div>
+        <div class="stat"><b>${Math.floor(total)}</b><span>Dias na jornada</span></div>
+      </section>
+      <section class="card">
+        <h3>Marcos</h3>
+        <div class="badges">${MILESTONES.map(([d, n]) => `<div class="badge ${reached >= d ? 'got' : ''}"><b>${d}</b><span>${n}</span></div>`).join('')}</div>
+      </section>
+      <section class="card">
+        <h3>Meus motivos</h3>
+        <p class="muted" style="font-size:14px">Aparecem no botão de pânico para lembrar por que você começou.</p>
+        <div class="list">${S.reasons.map((r, i) => `<div class="reason"><p>${esc(r)}</p><button class="del" data-rdel="${i}">Remover</button></div>`).join('')}</div>
+        <div class="row" style="flex-wrap:nowrap"><input id="rNew" placeholder="Adicionar um motivo"><button class="btn" id="rAdd">Adicionar</button></div>
+      </section>
+      <section class="card">
+        <h3>Início da jornada</h3>
+        <input type="datetime-local" id="startEdit" value="${toLocalInput(S.firstStart)}" max="${toLocalInput(new Date())}">
+        <button class="btn" id="startSave">Salvar data de início</button>
+      </section>
+      <section class="card">
+        <h3>Backup</h3>
+        <p class="muted" style="font-size:14px">Os dados ficam só neste aparelho. Copie o código abaixo e guarde nas Notas para não perder nada.</p>
+        <textarea id="bkOut" readonly style="min-height:70px;font-size:12px"></textarea>
+        <button class="btn" id="bkCopy">Copiar backup</button>
+        <textarea id="bkIn" placeholder="Cole aqui um backup para restaurar" style="min-height:70px;font-size:12px"></textarea>
+        <button class="btn" id="bkImport">Restaurar backup</button>
+      </section>
+      <button class="btn danger block" id="wipe">Apagar todos os dados</button>`;
+  }
+
+  function resCard(r, featured) {
+    const seen = S.seen[r.id];
+    return `<article class="res ${featured ? 'feature' : ''} ${seen && !featured ? 'seen' : ''}">
+      ${featured ? '<span class="eyebrow">Para hoje</span>' : `<span class="eyebrow">${esc(r.type)}</span>`}
+      <h3>${esc(r.title)}</h3>
+      <span class="who">${esc(r.who)}</span>
+      <p>${esc(r.desc)}</p>
+      <div class="acts">
+        ${r.yt ? `<a class="link" href="${esc(r.yt)}" target="_blank" rel="noopener">YouTube</a>` : ''}
+        ${r.sp ? `<a class="link spot" href="${esc(r.sp)}" target="_blank" rel="noopener">Spotify</a>` : ''}
+        <button class="chip" data-seen="${r.id}" aria-pressed="${!!seen}">${seen ? 'Já vi' : 'Marcar como visto'}</button>
+      </div>
+    </article>`;
+  }
+  function viewIncentivo() {
+    const dayN = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / DAY);
+    const todayK = dayKey(new Date());
+    const task = DAILY[dayN % DAILY.length];
+    const done = !!S.dailyDone[todayK];
+    const featPool = RESOURCES.filter(r => r.type === 'Pregações' || r.type === 'Em alta' || r.type === 'Vídeos');
+    const feat = featPool[dayN % featPool.length];
+    const list = RESOURCES.filter(r => r.id !== feat.id && (rFilter === 'Todos' || r.type === rFilter));
+    const daysDone = Object.keys(S.dailyDone).length;
+    return `
+      <header class="top"><h1>Incentivo</h1></header>
+      <p class="muted">Encha a mente do que é bom. Um passo melhor a cada dia.</p>
+      <section class="card">
+        <div class="spread"><span class="eyebrow">Desafio de hoje</span><span class="tag">${daysDone} ${daysDone === 1 ? 'dia cumprido' : 'dias cumpridos'}</span></div>
+        <button class="daily" id="dailyBtn" aria-pressed="${done}"><span class="box"></span><span style="font-size:16px;font-weight:500">${esc(task)}</span></button>
+      </section>
+      ${resCard(feat, true)}
+      <div class="row" role="group" aria-label="Filtrar">${RTYPES.map(t => `<button class="chip" data-rf="${t}" aria-pressed="${rFilter === t}">${t}</button>`).join('')}</div>
+      <section class="list">${list.map(r => resCard(r)).join('') || '<p class="muted">Nada nesta categoria.</p>'}</section>
+      <section class="card">
+        <h3>Meus links</h3>
+        <p class="muted" style="font-size:14px">Salve aqui a pregação, vídeo ou podcast que te ajudou, para voltar nele na hora da luta.</p>
+        <div class="list">${S.links.map(l => `<div class="reason"><p><a href="${esc(l.url)}" target="_blank" rel="noopener" style="color:var(--gold)">${esc(l.title)}</a></p><button class="del" data-ldel="${esc(l.id)}">Remover</button></div>`).join('')}</div>
+        <input id="lTitle" placeholder="Nome (ex.: Pregação sobre José)">
+        <input id="lUrl" type="url" placeholder="Link (https://…)">
+        <button class="btn" id="lAdd">Salvar link</button>
+      </section>
+      <p class="muted" style="font-size:12px">No YouTube, os botões abrem uma busca pelo tema, então você sempre vê o que há de mais recente. No Spotify, abrem direto o podcast.</p>`;
+  }
+
+  // ---------- Bíblia ----------
+  const BOOKS = ['Gênesis','Êxodo','Levítico','Números','Deuteronômio','Josué','Juízes','Rute','1 Samuel','2 Samuel','1 Reis','2 Reis','1 Crônicas','2 Crônicas','Esdras','Neemias','Ester','Jó','Salmos','Provérbios','Eclesiastes','Cânticos','Isaías','Jeremias','Lamentações','Ezequiel','Daniel','Oseias','Joel','Amós','Obadias','Jonas','Miqueias','Naum','Habacuque','Sofonias','Ageu','Zacarias','Malaquias','Mateus','Marcos','Lucas','João','Atos','Romanos','1 Coríntios','2 Coríntios','Gálatas','Efésios','Filipenses','Colossenses','1 Tessalonicenses','2 Tessalonicenses','1 Timóteo','2 Timóteo','Tito','Filemom','Hebreus','Tiago','1 Pedro','2 Pedro','1 João','2 João','3 João','Judas','Apocalipse'];
+  // versículos por capítulo, por livro
+  const BMETA = [[31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,23,57,38,34,34,28,34,31,22,33,26],[22,25,22,31,23,30,25,32,35,29,10,51,22,31,27,36,16,27,25,26,36,31,33,18,40,37,21,43,46,38,18,35,23,35,35,38,29,31,43,38],[17,16,17,35,19,30,38,36,24,20,47,8,59,57,33,34,16,30,37,27,24,33,44,23,55,46,34],[54,34,51,49,31,27,89,26,23,36,35,16,33,45,41,50,13,32,22,29,35,41,30,25,18,65,23,31,40,16,54,42,56,29,34,13],[46,37,29,49,33,25,26,20,29,22,32,32,18,29,23,22,20,22,21,20,23,30,25,22,19,19,26,68,29,20,30,52,29,12],[18,24,17,24,15,27,26,35,27,43,23,24,33,15,63,10,18,28,51,9,45,34,16,33],[36,23,31,24,31,40,25,35,57,18,40,15,25,20,20,31,13,31,30,48,25],[22,23,18,22],[28,36,21,22,12,21,17,22,27,27,15,25,23,52,35,23,58,30,24,42,15,23,29,22,44,25,12,25,11,31,13],[27,32,39,12,25,23,29,18,13,19,27,31,39,33,37,23,29,33,43,26,22,51,39,25],[53,46,28,34,18,38,51,66,28,29,43,33,34,31,34,34,24,46,21,43,29,53],[18,25,27,44,27,33,20,29,37,36,21,21,25,29,38,20,41,37,37,21,26,20,37,20,30],[54,55,24,43,26,81,40,40,44,14,47,40,14,17,29,43,27,17,19,8,30,19,32,31,31,32,34,21,30],[17,18,17,22,14,42,22,18,31,19,23,16,22,15,19,14,19,34,11,37,20,12,21,27,28,23,9,27,36,27,21,33,25,33,27,23],[11,70,13,24,17,22,28,36,15,44],[11,20,32,23,19,19,73,18,38,39,36,47,31],[22,23,15,17,14,14,10,17,32,3],[22,13,26,21,27,30,21,22,35,22,20,25,28,22,35,22,16,21,29,29,34,30,17,25,6,14,23,28,25,31,40,22,33,37,16,33,24,41,30,24,34,17],[6,12,8,8,12,10,17,9,20,18,7,8,6,7,5,11,15,50,14,9,13,31,6,10,22,12,14,9,11,12,24,11,22,22,28,12,40,22,13,17,13,11,5,26,17,11,9,14,20,23,19,9,6,7,23,13,11,11,17,12,8,12,11,10,13,20,7,35,36,5,24,20,28,23,10,12,20,72,13,19,16,8,18,12,13,17,7,18,52,17,16,15,5,23,11,13,12,9,9,5,8,28,22,35,45,48,43,13,31,7,10,10,9,8,18,19,2,29,176,7,8,9,4,8,5,6,5,6,8,8,3,18,3,3,21,26,9,8,24,13,10,7,12,15,21,10,20,14,9,6],[33,22,35,27,23,35,27,36,18,32,31,28,25,35,33,33,28,24,29,30,31,29,35,34,28,28,27,28,27,33,31],[18,26,22,16,20,12,29,17,18,20,10,14],[17,17,11,16,16,13,13,14],[31,22,26,6,30,13,25,22,21,34,16,6,22,32,9,14,14,7,25,6,17,25,18,23,12,21,13,29,24,33,9,20,24,17,10,22,38,22,8,31,29,25,28,28,25,13,15,22,26,11,23,15,12,17,13,12,21,14,21,22,11,12,19,12,25,24],[19,37,25,31,31,30,34,22,26,25,23,17,27,22,21,21,27,23,15,18,14,30,40,10,38,24,22,17,32,24,40,44,26,22,19,32,21,28,18,16,18,22,13,30,5,28,7,47,39,46,64,34],[22,22,66,22,22],[28,10,27,17,17,14,27,18,11,22,25,28,23,23,8,63,24,32,14,49,32,31,49,27,17,21,36,26,21,26,18,32,33,31,15,38,28,23,29,49,26,20,27,31,25,24,23,35],[21,49,30,37,31,28,28,27,27,21,45,13],[11,23,5,19,15,11,16,14,17,15,12,14,16,9],[20,32,21],[15,16,15,13,27,14,17,14,15],[21],[17,10,10,11],[16,13,12,13,15,16,20],[15,13,19],[17,20,19],[18,15,20],[15,23],[21,13,10,14,11,15,14,23,17,12,17,14,9,21],[14,17,18,6],[25,23,17,25,48,34,29,34,38,42,30,50,58,36,39,28,27,35,30,34,46,46,39,51,46,75,66,20],[45,28,35,41,43,56,37,38,50,52,33,44,37,72,47,20],[80,52,38,44,39,49,50,56,62,42,54,59,35,35,32,31,37,43,48,47,38,71,56,53],[51,25,36,54,47,71,53,59,41,42,57,50,38,31,27,33,26,40,42,31,25],[26,47,26,37,42,15,60,40,43,48,30,25,52,28,41,40,34,28,41,38,40,30,35,27,27,32,44,31],[32,29,31,25,21,23,25,39,33,21,36,21,14,23,33,27],[31,16,23,21,13,20,40,13,27,33,34,31,13,40,58,24],[24,17,18,18,21,18,16,24,15,18,33,21,14],[24,21,29,31,26,18],[23,22,21,32,33,24],[30,30,21,23],[29,23,25,18],[10,20,13,18,28],[12,17,18],[20,15,16,16,25,21],[18,26,17,22],[16,15,15],[25],[14,18,19,16,14,20,28,13,28,39,40,29,25],[27,26,18,17,20],[25,25,22,19,14],[21,22,18],[10,29,24,21,21],[13],[15],[25],[20,29,22,11,14,17,17,13,21,11,19,18,18,20,8,21,18,24,21,15,27,21]];
+  const VTOTAL = BMETA.reduce((a, b) => a + b.reduce((x, y) => x + y, 0), 0);
+  const CTOTAL = BMETA.reduce((a, b) => a + b.length, 0);
+  let BIBLE = null, bibleErr = false, bibleLoading = false;
+  let bv = { mode: 'books', b: 0, c: 1 };
+  function B() { if (!S.bible) S.bible = { read: {}, marks: {}, last: null }; return S.bible; }
+  function loadBible() {
+    if (BIBLE || bibleLoading) return;
+    bibleLoading = true; bibleErr = false;
+    fetch('biblia.json').then(r => { if (!r.ok) throw 0; return r.json(); })
+      .then(j => { BIBLE = j; bibleLoading = false; if (tab === 'biblia') render(); })
+      .catch(() => { bibleLoading = false; bibleErr = true; if (tab === 'biblia') render(); });
+  }
+  function bibleStats() {
+    const rd = B().read;
+    let v = 0, ch = 0, vot = 0, vnt = 0;
+    const per = BMETA.map(() => 0);
+    for (const k in rd) {
+      const [b, c] = k.split(':').map(Number);
+      const n = (BMETA[b] || [])[c - 1]; if (!n) continue;
+      v += n; ch++; per[b]++;
+      if (b < 39) vot += n; else vnt += n;
+    }
+    const tot = (from, to) => BMETA.slice(from, to).reduce((a, b) => a + b.reduce((x, y) => x + y, 0), 0);
+    return { pct: v / VTOTAL, ch, per, ot: vot / tot(0, 39), nt: vnt / tot(39, 66) };
+  }
+  const pctTxt = x => (x * 100 < 10 && x > 0 ? (x * 100).toFixed(1) : Math.floor(x * 100)).toString().replace('.', ',') + '%';
+  function viewBiblia() {
+    const bb = B();
+    if (bv.mode === 'plans') return viewPlans();
+    if (bv.mode === 'plan') return viewPlan();
+    if (bv.mode === 'devos') return viewDevos();
+    if (bv.mode === 'devo') return viewDevo();
+    if (bv.mode === 'chapters') {
+      const n = BMETA[bv.b].length;
+      const last = bb.last;
+      return `
+        <button class="back" data-bnav="books">← Livros</button>
+        <header class="top"><h1>${BOOKS[bv.b]}</h1></header>
+        <p class="muted">${bibleStats().per[bv.b]} de ${n} capítulos lidos</p>
+        <div class="chs">${Array.from({ length: n }, (_, i) => i + 1).map(c => `<button data-bch="${c}" class="${bb.read[bv.b + ':' + c] ? 'read' : ''} ${last && last[0] === bv.b && last[1] === c ? 'last' : ''}">${c}</button>`).join('')}</div>`;
+    }
+    if (bv.mode === 'marks') {
+      const ms = Object.entries(bb.marks).sort((a, b) => new Date(b[1].at) - new Date(a[1].at));
+      return `
+        <button class="back" data-bnav="books">← Livros</button>
+        <header class="top"><h1>Versículos marcados</h1></header>
+        <div class="list">${ms.length ? ms.map(([k, m]) => {
+          const [b, c, v] = k.split(':').map(Number);
+          return `<div class="mark-item"><span class="ref">${BOOKS[b]} ${c}:${v}</span><p class="verse">“${esc(m.t)}”</p>
+            <div class="row"><button class="chip" data-mgo="${k}">Abrir capítulo</button><button class="del" data-mdel="${k}">Desmarcar</button></div></div>`;
+        }).join('') : '<p class="muted">Nenhum versículo marcado. Na leitura, toque num versículo para marcar.</p>'}</div>`;
+    }
+    if (bv.mode === 'read') {
+      const b = bv.b, c = bv.c, key = b + ':' + c, isRead = !!bb.read[key];
+      const nChap = BMETA[b].length;
+      const hasPrev = b > 0 || c > 1, hasNext = b < 65 || c < nChap;
+      let body;
+      if (BIBLE) {
+        body = `<div class="reader">${BIBLE[b][c - 1].map((t, i) => `<span class="v ${bb.marks[key + ':' + (i + 1)] ? 'mk' : ''}" data-bv="${i + 1}"><sup>${i + 1}</sup>${esc(t)}</span> `).join('')}</div>`;
+      } else if (bibleErr) {
+        body = `<div class="card"><p>Não consegui carregar o texto da Bíblia. Verifique a internet e tente de novo.</p><button class="btn" id="bibRetry">Tentar de novo</button></div>`;
+      } else { loadBible(); body = '<p class="muted">Carregando o texto…</p>'; }
+      return `
+        <div class="navrow"><button class="back" data-bnav="chapters">← ${BOOKS[b]}</button><span></span><span class="muted" style="font-size:13px">${c} de ${nChap}</span></div>
+        <header class="top"><h1>${BOOKS[b]} ${c}</h1></header>
+        <p class="muted" style="font-size:13px">Toque num versículo para marcar.</p>
+        ${body}
+        ${bv.ctx ? `<button class="btn primary block" id="planRead">Concluir leitura do plano</button><button class="btn ghost block" data-bnav="plan">Voltar ao plano</button>` : ''}
+        <button class="btn ${isRead || bv.ctx ? 'ghost' : 'primary'} block" id="bibRead" ${bv.ctx ? 'hidden' : ''}>${isRead ? 'Lido ✓ (toque para desmarcar)' : (hasNext ? 'Marcar como lido e ir ao próximo' : 'Marcar como lido')}</button>
+        <div class="row" style="justify-content:space-between">
+          <button class="btn ghost" id="bibPrev" ${hasPrev ? '' : 'disabled style="opacity:.4"'}>← Anterior</button>
+          <button class="btn ghost" id="bibNext" ${hasNext ? '' : 'disabled style="opacity:.4"'}>Próximo →</button>
+        </div>
+        <p class="muted" style="font-size:11px">Texto: Bíblia Livre (licença CC BY-SA).</p>`;
+    }
+    const st = bibleStats();
+    const last = bb.last;
+    const nMarks = Object.keys(bb.marks).length;
+    const bookBtn = i => {
+      const n = BMETA[i].length, r = st.per[i];
+      return `<button class="book ${r === n ? 'done' : ''}" data-bk="${i}"><b>${BOOKS[i]}</b><div class="bar thin"><i style="width:${(r / n * 100).toFixed(1)}%"></i></div><small>${r}/${n}</small></button>`;
+    };
+    return `
+      <header class="top"><h1>Bíblia</h1></header>
+      <section class="card">
+        <span class="eyebrow">Quanto da Bíblia você já leu</span>
+        <div class="spread"><span class="big-pct">${pctTxt(st.pct)}</span><span class="muted" style="font-size:13px;text-align:right">${st.ch} de ${CTOTAL}<br>capítulos</span></div>
+        <div class="bar"><i style="width:${(st.pct * 100).toFixed(2)}%"></i></div>
+        <div class="stats">
+          <div class="stat"><b>${pctTxt(st.ot)}</b><span>Antigo Testamento</span></div>
+          <div class="stat"><b>${pctTxt(st.nt)}</b><span>Novo Testamento</span></div>
+        </div>
+        <p class="muted" style="font-size:12px">O percentual conta os versículos dos capítulos marcados como lidos.</p>
+      </section>
+      ${(() => {
+        const ps = planState();
+        if (!ps) return `<section class="card"><div class="spread"><h3>Plano de leitura</h3><span class="tag">${PLANS.length} planos</span></div><p class="muted" style="font-size:14px">Bíblia em 1 ano, cronológico, Novo Testamento em 90 dias e outros.</p><button class="btn primary" data-bnav="plans">Escolher um plano</button></section>`;
+        if (ps.next >= ps.days.length) return `<section class="card"><h3>${esc(ps.def.name)}</h3><p>Plano concluído! Glória a Deus.</p><button class="btn" data-bnav="plans">Escolher outro plano</button></section>`;
+        return `<section class="card"><div class="spread"><span class="eyebrow">Plano de hoje</span><span class="meta" style="font-size:12px;color:var(--muted)">${ps.doneDays}/${ps.days.length} dias</span></div><h3>${esc(ps.def.name)}</h3>${dayBlock(ps, ps.next, true)}<button class="btn ghost" data-bnav="plan">Ver plano completo</button></section>`;
+      })()}
+      ${(() => { const i = devoNext(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional · dia ${i + 1} de ${DEVOS.length}</span>${dd[i] ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
+      <div class="row">
+        <button class="btn primary" id="bibCont">${last ? 'Continuar: ' + BOOKS[last[0]] + ' ' + last[1] : 'Começar por João 1'}</button>
+        <button class="btn" data-bnav="marks">Marcados (${nMarks})</button>
+      </div>
+      <h2>Antigo Testamento</h2>
+      <div class="books">${BOOKS.slice(0, 39).map((_, i) => bookBtn(i)).join('')}</div>
+      <h2>Novo Testamento</h2>
+      <div class="books">${BOOKS.slice(39).map((_, i) => bookBtn(i + 39)).join('')}</div>`;
+  }
+  function openChapter(b, c, ctx) {
+    bv = { mode: 'read', b, c, ctx: ctx || null }; B().last = [b, c]; save(); render(); window.scrollTo(0, 0);
+  }
+
+  // ---------- Planos de leitura ----------
+  const seg = (b, from, to) => { const out = []; const n = BMETA[b].length; for (let c = from || 1; c <= (to || n); c++) out.push([b, c]); return out; };
+  const books = (from, to) => { let o = []; for (let b = from; b <= to; b++) o = o.concat(seg(b)); return o; };
+  const vcount = ([b, c]) => BMETA[b][c - 1];
+  function chunk(list, days) {
+    const total = list.reduce((a, x) => a + vcount(x), 0);
+    const out = Array.from({ length: days }, () => []);
+    let acc = 0, d = 0;
+    list.forEach((x, i) => {
+      const left = list.length - i;
+      while (d < days - 1 && acc >= total * (d + 1) / days && out[d].length) d++;
+      if (days - d > left && out[d].length) d++;      // garante pelo menos 1 por dia
+      out[Math.min(d, days - 1)].push(x); acc += vcount(x);
+    });
+    return out;
+  }
+  const merge = (...tracks) => tracks[0].map((_, i) => tracks.reduce((a, t) => a.concat(t[i] || []), []));
+  const CHRONO = () => [
+    ...seg(0, 1, 11), ...seg(17), ...seg(0, 12, 50), ...books(1, 4), ...seg(18, 90, 90), ...books(5, 7), ...seg(8), ...seg(9), ...seg(12),
+    ...seg(18, 1, 89), ...seg(18, 91, 150), ...seg(10, 1, 11), ...seg(13, 1, 9), ...seg(19), ...seg(20), ...seg(21),
+    ...seg(10, 12, 22), ...seg(11, 1, 14), ...seg(31), ...seg(29), ...seg(27), ...seg(11, 15, 17), ...seg(22), ...seg(32), ...seg(11, 18, 25),
+    ...seg(13, 10, 36), ...seg(33), ...seg(35), ...seg(34), ...seg(28), ...seg(23), ...seg(24), ...seg(30), ...seg(25), ...seg(26),
+    ...seg(14, 1, 6), ...seg(36), ...seg(37), ...seg(16), ...seg(14, 7, 10), ...seg(15), ...seg(38),
+    ...books(39, 42), ...seg(43, 1, 14), ...seg(58), ...seg(47), ...seg(43, 15, 18), ...seg(51), ...seg(52), ...seg(43, 19, 20), ...seg(45), ...seg(46), ...seg(44),
+    ...seg(43, 21, 28), ...seg(48), ...seg(49), ...seg(50), ...seg(56), ...seg(53), ...seg(55), ...seg(59), ...seg(57), ...seg(54), ...seg(60), ...seg(64),
+    ...seg(61), ...seg(62), ...seg(63), ...seg(65),
+  ];
+  const PLANS = [
+    { id: 'ano', name: 'Bíblia em 1 ano', tag: 'O mais usado', days: 365, desc: 'Gênesis a Apocalipse em ordem, cerca de 3 a 4 capítulos por dia.', build: () => chunk(books(0, 65), 365) },
+    { id: 'mcheyne', name: 'Quatro leituras por dia (estilo M’Cheyne)', tag: 'Clássico', days: 365, desc: 'Inspirado no plano de Robert M’Cheyne: em um ano você lê o Antigo Testamento uma vez e o Novo Testamento e os Salmos duas vezes, com quatro leituras curtas por dia.', build: () => merge(
+        chunk([...books(0, 17)], 365), chunk([...books(19, 38)], 365), chunk([...books(39, 65), ...books(39, 65)], 365), chunk([...seg(18), ...seg(18)], 365)) },
+    { id: 'crono', name: 'Cronológico em 1 ano', tag: 'Popular', days: 365, desc: 'A Bíblia na ordem aproximada em que os fatos aconteceram, com profetas junto dos reis da sua época e cartas de Paulo dentro de Atos.', build: () => chunk(CHRONO(), 365) },
+    { id: 'b90', name: 'Bíblia em 90 dias', tag: 'Intenso', days: 90, desc: 'A Bíblia inteira em três meses, cerca de 13 capítulos (uns 45 minutos) por dia.', build: () => chunk(books(0, 65), 90) },
+    { id: 'nt90', name: 'Novo Testamento em 90 dias', tag: 'Para começar', days: 90, desc: 'Os 260 capítulos do Novo Testamento, cerca de 3 por dia.', build: () => chunk(books(39, 65), 90) },
+    { id: '5x5', name: 'Novo Testamento 5x5x5', tag: 'Leve', days: 260, desc: 'Um capítulo por dia, 5 dias por semana, uns 5 minutos. Os fins de semana ficam livres para pôr em dia.', build: () => books(39, 65).map(x => [x]) },
+    { id: 'evang', name: 'Evangelhos em 30 dias', tag: 'Conhecer Jesus', days: 30, desc: 'Mateus, Marcos, Lucas e João em um mês, cerca de 3 capítulos por dia.', build: () => chunk(books(39, 42), 30) },
+    { id: 'slpv', name: 'Salmos e Provérbios em 31 dias', tag: 'Sabedoria', days: 31, desc: 'Um capítulo de Provérbios e cerca de 5 Salmos por dia, por um mês.', build: () => merge(chunk(seg(18), 31), seg(19).map(x => [x])) },
+  ];
+  const planCache = {};
+  const planDays = id => planCache[id] || (planCache[id] = PLANS.find(p => p.id === id).build());
+  function fmtReads(list) {
+    const out = [];
+    list.forEach(([b, c]) => {
+      const l = out[out.length - 1];
+      if (l && l.b === b && l.to === c - 1) l.to = c; else out.push({ b, from: c, to: c });
+    });
+    return out.map(g => BOOKS[g.b] + ' ' + (g.from === g.to ? g.from : g.from + '–' + g.to)).join(', ');
+  }
+  function planState() {
+    const pl = B().plan; if (!pl) return null;
+    const days = planDays(pl.id), def = PLANS.find(p => p.id === pl.id);
+    const isDone = (d, i) => !!pl.done[d + ':' + i];
+    const dayDone = d => days[d].every((_, i) => isDone(d, i));
+    let next = days.findIndex((_, d) => !dayDone(d)); if (next < 0) next = days.length;
+    const doneDays = days.filter((_, d) => dayDone(d)).length;
+    const expected = Math.min(days.length, Math.floor((new Date(dayKey(new Date())) - new Date(dayKey(pl.start))) / DAY) + 1);
+    return { pl, def, days, isDone, dayDone, next, doneDays, expected };
+  }
+  function dayBlock(ps, d, open) {
+    const items = ps.days[d];
+    return `<div class="day-row">
+      <div class="spread"><b>Dia ${d + 1}</b><span class="meta">${ps.dayDone(d) ? '<span class="tag win">Concluído</span>' : esc(fmtReads(items))}</span></div>
+      ${open ? `<div class="reads">${items.map(([b, c], i) => `<button class="read-item ${ps.isDone(d, i) ? 'ok' : ''}" data-pr="${d}:${i}"><span class="box"></span><span>${BOOKS[b]} ${c}</span><span>${BMETA[b][c - 1]} vers.</span></button>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  function viewPlans() {
+    const cur = B().plan;
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>Planos de leitura</h1></header>
+      <p class="muted">Escolha um plano. Ao terminar um capítulo pelo plano, ele conta também no seu progresso da Bíblia.</p>
+      <div class="list">${PLANS.map(p => `
+        <article class="plan-card">
+          <div class="spread"><span class="eyebrow">${esc(p.tag)}</span><span class="meta">${p.days} dias</span></div>
+          <h3>${esc(p.name)}</h3>
+          <p class="muted" style="font-size:14px">${esc(p.desc)}</p>
+          ${cur && cur.id === p.id ? '<button class="btn" data-bnav="plan">Ver meu plano</button>' : `<button class="btn primary" data-pstart="${p.id}">Começar este plano</button>`}
+        </article>`).join('')}</div>`;
+  }
+  function viewPlan() {
+    const ps = planState();
+    if (!ps) return viewPlans();
+    const n = ps.days.length, ahead = ps.next - ps.expected, late = ps.expected - 1 - ps.next;
+    const status = ps.next >= n ? 'Plano concluído! Glória a Deus.'
+      : ahead > 0 ? `Adiantado ${ahead} ${ahead === 1 ? 'dia' : 'dias'}`
+      : ahead === 0 ? 'Você está em dia. A leitura de hoje já foi feita.'
+      : late > 0 ? `${late} ${late === 1 ? 'dia' : 'dias'} de atraso, sem culpa: continue de onde parou`
+      : 'Você está em dia. Falta só a leitura de hoje.';
+    const show = []; for (let d = ps.next; d < Math.min(n, ps.next + 7); d++) show.push(d);
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>${esc(ps.def.name)}</h1></header>
+      <section class="card">
+        <div class="spread"><span class="big-pct" style="font-size:34px">${ps.doneDays}<span class="muted" style="font-size:18px"> / ${n} dias</span></span></div>
+        <div class="bar"><i style="width:${(ps.doneDays / n * 100).toFixed(1)}%"></i></div>
+        <p class="muted" style="font-size:14px">${status}</p>
+      </section>
+      ${show.map((d, i) => `<section class="card">${dayBlock(ps, d, i === 0)}</section>`).join('')}
+      <div class="row"><button class="btn ghost" data-bnav="plans">Trocar de plano</button><button class="btn danger" id="planStop">Parar plano</button></div>`;
+  }
+
+  // ---------- Devocionais ----------
+  const DEVOS = [
+    ['Deus é fiel na hora da tentação', [45, 10, 13, 13], 'A tentação que você enfrenta não é sinal de que você é pior que os outros. Ela é humana. A diferença está no que Deus promete junto com ela: uma saída. Ela quase nunca é mágica; costuma ser simples, como levantar, sair do quarto, largar o celular. A saída existe, mas é você quem precisa passar por ela.', 'Senhor, abre meus olhos para ver a saída que o Senhor prepara e me dá coragem para usá-la logo.', 'Escreva no Diário qual é a sua “saída” mais rápida quando a tentação chega.'],
+    ['Livre para viver livre', [47, 5, 1, 1], 'Cristo não te libertou para você continuar visitando a prisão. A liberdade é um presente, mas permanecer nela é uma escolha diária. Cada dia limpo não é só um número: é você ficando firme no lugar onde Cristo te colocou.', 'Jesus, obrigado por me libertar. Me ajuda a não voltar para o que me prendia.', 'Olhe o seu contador hoje e agradeça a Deus por cada dia, em voz alta.'],
+    ['Fuja, não negocie', [0, 39, 7, 12], 'José não ficou discutindo com a tentação nem testando até onde aguentava. Ele largou a capa e correu. Às vezes a coisa mais espiritual que você pode fazer é fugir rápido, sem conversa. Perder a capa é melhor do que perder a integridade.', 'Pai, me dá a prontidão de José para fugir sem negociar.', 'Identifique uma situação em que você costuma “negociar” e decida hoje como vai fugir dela.'],
+    ['Um coração novo', [18, 51, 10, 12], 'Davi não pediu só para parar de errar; pediu um coração novo. A luta contra a luxúria não se vence apenas cortando hábitos, mas deixando Deus mudar o que você deseja. Ele cria o que você não consegue fabricar sozinho.', 'Cria em mim um coração puro, ó Deus. Muda os meus desejos, não só o meu comportamento.', 'Ore o Salmo 51 devagar antes de dormir.'],
+    ['Vigiar e orar', [39, 26, 41, 41], 'Jesus sabia que a carne é fraca, por isso deu duas armas: vigiar e orar. Vigiar é conhecer seus horários e lugares de risco. Orar é admitir que você precisa de ajuda antes da batalha, não só depois da queda.', 'Senhor, me ensina a vigiar meus momentos fracos e a orar antes que a tentação chegue.', 'Anote seus três horários de maior risco e o que fará em cada um.'],
+    ['Aliança com os olhos', [17, 31, 1, 1], 'Jó fez um acordo com os próprios olhos antes do problema aparecer. A decisão foi tomada com antecedência, com a cabeça fria. Quem decide na hora quase sempre perde. Decida hoje o que seus olhos não vão ver.', 'Deus, firmo contigo uma aliança: meus olhos são teus.', 'Defina uma regra clara para o celular e as redes (por exemplo: nada de rolar o feed na cama).'],
+    ['Nenhuma condenação', [44, 8, 1, 2], 'A culpa diz: “você nunca vai mudar”. O evangelho diz: “não há condenação para quem está em Cristo”. Isso não é licença para pecar; é o chão firme de onde você se levanta. Quem vive condenado volta para o vício para anestesiar a dor.', 'Jesus, obrigado porque a minha condenação caiu sobre ti. Me levanta com a tua graça.', 'Se a culpa te perseguir hoje, leia Romanos 8:1 em voz alta.'],
+    ['Mente renovada', [44, 12, 1, 2], 'Você se torna aquilo que alimenta. O mundo oferece um molde; Deus oferece uma transformação que começa na mente. Cada coisa boa que você coloca na cabeça é um tijolo do novo homem que Ele está construindo.', 'Senhor, renova a minha mente. Tira de mim o molde deste mundo.', 'Troque 20 minutos de tela hoje por uma pregação ou um capítulo da Bíblia.'],
+    ['Resistir e se aproximar', [58, 4, 7, 8], 'Tiago junta duas ordens: resistir ao diabo e chegar perto de Deus. Não basta só dizer não; é preciso dizer sim para Alguém melhor. Quando você se aproxima de Deus, Ele se aproxima de você.', 'Deus, eu me achego a ti agora. Me ajuda a resistir.', 'Quando bater a vontade hoje, ore em voz alta por um minuto antes de qualquer outra coisa.'],
+    ['Pense nisso', [49, 4, 8, 8], 'A batalha começa nos pensamentos. Paulo não manda só expulsar o pensamento ruim, mas encher a mente do que é verdadeiro, puro e amável. Mente vazia se enche sozinha; mente ocupada com o bem tem menos espaço para o mal.', 'Senhor, enche meus pensamentos do que é puro e verdadeiro.', 'Escolha um versículo hoje para repetir sempre que um pensamento impuro aparecer.'],
+    ['O seu corpo é templo', [45, 6, 18, 20], 'Você foi comprado por um preço alto. O seu corpo não é descartável nem só seu: é lugar onde Deus habita. Pureza não é só regra, é honrar Aquele que pagou por você com o próprio sangue.', 'Jesus, quero te honrar com meu corpo, porque ele é teu.', 'Faça hoje algo que cuide do seu corpo: um treino, uma caminhada ou dormir cedo.'],
+    ['Do desejo à morte', [58, 1, 14, 15], 'O pecado tem um caminho: desejo, atração, concepção, morte. Quanto mais cedo você corta, mais fácil. É muito mais fácil fechar a porta para o primeiro pensamento do que lutar no meio do caminho.', 'Senhor, me dá discernimento para cortar o mal no começo.', 'Pense na última queda e anote qual foi o primeiro passo. Esse é o ponto de corte.'],
+    ['Davi no terraço', [9, 11, 1, 4], 'Davi estava no lugar errado (em casa, quando devia estar na guerra), na hora errada e com tempo sobrando. O ócio abriu a porta. Muitas quedas começam em noites sem propósito. Ocupe seu tempo com o que importa.', 'Pai, me livra do ócio que me deixa vulnerável. Dá propósito aos meus dias.', 'Planeje hoje o que você vai fazer nas suas noites desta semana.'],
+    ['Confessar e ser limpo', [61, 1, 9, 9], 'Esconder alimenta o vício; confessar quebra o seu poder. Deus não perdoa porque você merece, mas porque Ele é fiel e justo, já que Jesus pagou. A confissão não é para Deus descobrir algo, é para você sair do escuro.', 'Pai, confesso meus pecados a ti. Obrigado por me perdoar e me limpar.', 'Faça hoje uma confissão sincera a Deus, sem pressa e sem desculpas.'],
+    ['Misericórdias novas', [24, 3, 22, 23], 'Se você caiu ontem, hoje há misericórdia nova. Ela não acaba e se renova a cada manhã. Não deixe a queda de ontem roubar a vitória de hoje. Levante, lave o rosto e comece de novo.', 'Senhor, grande é a tua fidelidade. Recebo tua misericórdia de hoje.', 'Comece o dia de amanhã agradecendo antes de pegar o celular.'],
+    ['Guardado pela Palavra', [18, 119, 9, 11], 'Como um jovem guarda puro o seu caminho? Guardando a Palavra no coração. Versículos memorizados são armas que você carrega para onde for, mesmo sem a Bíblia na mão.', 'Senhor, grava a tua Palavra no meu coração.', 'Memorize 1 Coríntios 10:13 esta semana.'],
+    ['Fugir e seguir', [54, 2, 22, 22], 'Paulo manda fugir das paixões e seguir a justiça, a fé, o amor e a paz, junto com outros que buscam a Deus. Você não foge para o nada; foge para algo melhor e na companhia de outros.', 'Deus, coloca ao meu lado pessoas que te buscam de coração puro.', 'Procure hoje um irmão de confiança para caminhar com você.'],
+    ['Ele entende você', [57, 4, 15, 16], 'Jesus foi tentado em tudo e não pecou. Ele entende o peso da sua luta. Por isso você pode chegar com confiança ao trono da graça, não com medo. Ali há socorro na hora certa: na hora da tentação.', 'Jesus, tu me entendes. Preciso do teu socorro agora.', 'Na próxima tentação, abra o botão de pânico e ore Hebreus 4:16.'],
+    ['Andar no Espírito', [47, 5, 16, 17], 'Existe uma guerra dentro de você: a carne contra o Espírito. A promessa é que, andando no Espírito, você não satisfaz os desejos da carne. A vitória vem de andar perto, todo dia, e não de força de vontade num momento.', 'Espírito Santo, quero andar contigo hoje, passo a passo.', 'Faça três pausas curtas hoje para orar, uma de manhã, uma à tarde e uma à noite.'],
+    ['Melhor dois do que um', [20, 4, 9, 10], 'Quem cai sozinho fica no chão. Quem tem alguém, é levantado. O vício ama o isolamento. Ter uma pessoa a quem prestar contas é uma das armas mais fortes que existem.', 'Senhor, me dá humildade para pedir ajuda.', 'Mande hoje uma mensagem para alguém de confiança contando como você está.'],
+    ['Guarda o coração', [19, 4, 23, 23], 'Tudo o que você vive flui do coração. Por isso ele precisa de guarda, de portão e de vigia. O que entra pelos olhos e ouvidos chega ao coração. Escolha bem o que deixa entrar.', 'Senhor, ajuda-me a guardar meu coração acima de tudo.', 'Deixe de seguir hoje perfis ou canais que te puxam para baixo.'],
+    ['Cortar o que faz tropeçar', [39, 5, 27, 30], 'Jesus usa uma linguagem forte: se algo te faz tropeçar, corte. Ele não fala de mutilação, mas de medidas radicais. Às vezes é apagar um app, bloquear um site ou mudar o celular de lugar. Vale a pena.', 'Jesus, me dá coragem para cortar o que me faz cair.', 'Faça hoje um corte prático: apague, bloqueie ou instale um filtro.'],
+    ['Nova criatura', [46, 5, 17, 17], 'Em Cristo você não é só uma versão melhorada do antigo. Você é nova criação. O vício não define quem você é. Sua identidade é de filho, e filhos aprendem a viver como o Pai.', 'Pai, obrigado porque em Cristo eu sou nova criatura.', 'Escreva no Diário uma frase sobre quem você é em Cristo.'],
+    ['A graça que ensina', [55, 2, 11, 12], 'A graça não só perdoa; ela ensina a dizer não à impiedade e às paixões. Quanto mais você entende o amor de Deus, mais forte fica o seu “não” ao pecado.', 'Senhor, que a tua graça me ensine a dizer não.', 'Quando vier a tentação, diga em voz alta: “não, eu pertenço a Cristo”.'],
+    ['Força para os cansados', [22, 40, 29, 31], 'Você pode estar cansado de lutar. Deus dá força a quem não tem nenhuma. Esperar no Senhor não é ficar parado: é depender dEle enquanto continua andando.', 'Senhor, estou cansado. Renova as minhas forças.', 'Descanse bem hoje: durma cedo e longe do celular.'],
+    ['Limpos de coração', [39, 5, 8, 8], 'A recompensa da pureza não é só evitar consequências. É ver a Deus. Um coração limpo enxerga melhor a beleza de Deus, a sua família e a vida. A pureza abre os olhos.', 'Deus, quero te ver. Purifica meu coração.', 'Agradeça hoje por uma coisa bonita que você passou a perceber nesta jornada.'],
+    ['Despir e vestir', [48, 4, 22, 24], 'Mudar não é só tirar o velho; é vestir o novo. Se você só tira hábitos ruins e não coloca nada no lugar, o vazio volta a ser ocupado. Troque o hábito velho por um hábito novo e bom.', 'Senhor, me ajuda a vestir o novo homem que criaste.', 'Escolha um hábito bom para colocar no lugar do antigo (treino, leitura, oração).'],
+    ['Ele vai terminar a obra', [49, 1, 6, 6], 'Deus começou algo em você e Ele mesmo vai completar. Sua santificação não depende só da sua força. Nos dias fracos, descanse nessa promessa: Ele não desiste de você.', 'Pai, obrigado porque não desistes de mim. Completa a tua obra.', 'Releia seus motivos no Perfil e agradeça pelo caminho até aqui.'],
+    ['Ainda que eu caia', [32, 7, 8, 8], 'Cair não é o fim da história. O profeta diz: “ainda que eu tenha caído, me levantarei”. O inimigo quer que você fique no chão. Deus quer que você se levante agora, não amanhã.', 'Senhor, mesmo quando eu cair, me levanta e sê a minha luz.', 'Se você caiu recentemente, registre com sinceridade e recomece hoje.'],
+    ['Corra com perseverança', [57, 12, 1, 2], 'A vida cristã é uma corrida longa. Tire o peso, livre-se do pecado que embaraça e olhe para Jesus. Ele já correu antes de você e está te esperando na linha de chegada.', 'Jesus, ponho os olhos em ti. Me dá perseverança para continuar correndo.', 'Escolha o seu próximo passo: um novo plano de leitura ou mais 30 dias de desafio.'],
+  ];
+  function verseText(b, c, v1, v2) {
+    if (!BIBLE) return null;
+    return BIBLE[b][c - 1].slice(v1 - 1, v2).join(' ').replace(/^[A-ZÁÉ][a-záéíóúçã]{1,8}:(?=\S)/, '');
+  }
+  const refTxt = ([b, c, v1, v2]) => BOOKS[b] + ' ' + c + ':' + v1 + (v2 > v1 ? '–' + v2 : '');
+  const devoNext = () => { const d = B().devo || {}; const i = DEVOS.findIndex((_, k) => !d[k]); return i < 0 ? DEVOS.length - 1 : i; };
+  function viewDevo() {
+    const i = bv.devo ?? devoNext(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
+    const txt = verseText(b, c, v1, v2); if (!txt) loadBible();
+    const done = !!(B().devo || {})[i];
+    return `
+      <button class="back" data-bnav="devos">← Devocionais</button>
+      <span class="eyebrow">Dia ${i + 1} de ${DEVOS.length}</span>
+      <header class="top"><h1>${esc(dv[0])}</h1></header>
+      <article class="card devo">
+        <p class="verse">${txt ? '“' + esc(txt) + '”' : (bibleErr ? 'Não consegui carregar o versículo.' : 'Carregando o versículo…')}</p>
+        <span class="ref">${refTxt(dv[1])}</span>
+      </article>
+      <article class="card devo"><h4>Reflexão</h4><p class="body">${esc(dv[2])}</p></article>
+      <article class="card devo"><h4>Oração</h4><p class="body" style="font-family:var(--font-verse);font-style:italic">${esc(dv[3])}</p></article>
+      <article class="card devo"><h4>Para hoje</h4><p class="body">${esc(dv[4])}</p></article>
+      <div class="row">
+        <button class="btn ${done ? 'ghost' : 'primary'}" id="devoDone">${done ? 'Concluído ✓' : 'Concluir devocional'}</button>
+        <button class="btn" data-bopen="${b}:${c}">Ler ${BOOKS[b]} ${c} inteiro</button>
+      </div>`;
+  }
+  function viewDevos() {
+    const d = B().devo || {}, nd = Object.keys(d).length;
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>Devocionais</h1></header>
+      <p class="muted">30 dias de liberdade: uma passagem, uma reflexão, uma oração e um passo prático por dia.</p>
+      <div class="bar"><i style="width:${(nd / DEVOS.length * 100).toFixed(1)}%"></i></div>
+      <p class="muted" style="font-size:13px">${nd} de ${DEVOS.length} concluídos</p>
+      <div class="list">${DEVOS.map((dv, i) => `<button class="read-item ${d[i] ? 'ok' : ''}" data-devo="${i}"><span class="box"></span><span style="color:var(--fg)">${i + 1}. ${esc(dv[0])}</span><span>${refTxt(dv[1])}</span></button>`).join('')}</div>`;
+  }
+  function stepChapter(dir) {
+    let b = bv.b, c = bv.c + dir;
+    if (c < 1) { if (b === 0) return; b--; c = BMETA[b].length; }
+    else if (c > BMETA[b].length) { if (b === 65) return; b++; c = 1; }
+    openChapter(b, c);
+  }
+
+  // ---------- routing & render ----------
+  const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, biblia: viewBiblia, diario: viewDiario, perfil: viewPerfil };
+  let tab = 'inicio';
+  function route() {
+    if (location.hash === '#biblia' && tab !== 'biblia') bv = { ...bv, mode: 'books' };
+    const h = location.hash.replace('#', '');
+    tab = VIEWS[h] ? h : 'inicio';
+    render();
+    window.scrollTo(0, 0);
+  }
+  function render() {
+    $('#app').innerHTML = VIEWS[tab]();
+    document.querySelectorAll('nav.tabs a').forEach(a => a.setAttribute('aria-current', a.dataset.tab === tab ? 'page' : 'false'));
+    if (tab === 'perfil') $('#bkOut').value = JSON.stringify(S);
+    tick();
+  }
+  function tick() {
+    if (tab !== 'inicio') return;
+    const el = $('#days'); if (!el) return;
+    const ms = Math.max(0, Date.now() - currentStart());
+    const d = Math.floor(ms / DAY);
+    const rest = ms - d * DAY;
+    el.textContent = d;
+    $('#clock').textContent = pad(Math.floor(rest / 3600000)) + ':' + pad(Math.floor(rest / 60000) % 60) + ':' + pad(Math.floor(rest / 1000) % 60);
+    const mi = milestoneInfo(ms);
+    $('#ringProg').setAttribute('stroke-dashoffset', (552.92 * (1 - mi.pct)).toFixed(2));
+    const left = mi.next[0] * DAY - ms;
+    const ld = Math.floor(left / DAY), lh = Math.floor((left % DAY) / 3600000);
+    $('#nextMs').innerHTML = `Próximo marco: <b>${esc(mi.next[1])}</b> · faltam ${ld > 0 ? ld + 'd ' : ''}${lh}h`;
+  }
+  setInterval(tick, 1000);
+
+  // ---------- sheets ----------
+  function openSheet(html, onMount) {
+    $('#sheetHost').innerHTML = `<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+    $('#ov').addEventListener('click', e => { if (e.target.id === 'ov') closeSheet(); });
+    onMount && onMount($('#ov'));
+  }
+  function closeSheet() { $('#sheetHost').innerHTML = ''; }
+
+  function relapseSheet() {
+    const sel = [];
+    openSheet(`
+      <h2>Registrar recaída</h2>
+      <p class="muted">Cair não apaga o caminho que você já andou. Registre com sinceridade e levante.</p>
+      <label class="eyebrow" for="rlAt">Quando aconteceu</label>
+      <input type="datetime-local" id="rlAt" value="${toLocalInput(new Date())}" max="${toLocalInput(new Date())}">
+      <span class="eyebrow">O que levou a isso?</span>
+      <div class="row">${TRIGGERS.map(t => `<button class="chip" data-rt="${t}" aria-pressed="false">${t}</button>`).join('')}</div>
+      <textarea id="rlNote" placeholder="O que você aprendeu? O que vai fazer diferente?"></textarea>
+      <button class="btn danger block" id="rlSave">Registrar e recomeçar</button>
+      <button class="btn ghost block" id="rlCancel">Cancelar</button>`, ov => {
+      ov.querySelectorAll('[data-rt]').forEach(b => b.onclick = () => {
+        const t = b.dataset.rt, i = sel.indexOf(t);
+        i >= 0 ? sel.splice(i, 1) : sel.push(t);
+        b.setAttribute('aria-pressed', i < 0);
+      });
+      $('#rlCancel').onclick = closeSheet;
+      $('#rlSave').onclick = () => {
+        const v = $('#rlAt').value;
+        let at = v ? new Date(v) : new Date();
+        if (isNaN(at) || at > new Date()) at = new Date();
+        S.relapses.push({ id: uid(), at: at.toISOString(), triggers: sel, note: $('#rlNote').value.trim() });
+        S.onboarded = true;
+        save();
+        const g = GRACE[Math.floor(Math.random() * GRACE.length)];
+        openSheet(`
+          <h2>Recomeço</h2>
+          <p class="verse">“${esc(g[0])}”</p><span class="ref">${esc(g[1])}</span>
+          <p class="muted">Seu contador recomeçou. O próximo risco na parede é amanhã.</p>
+          <button class="btn primary block" id="okGrace">Seguir em frente</button>`, () => { $('#okGrace').onclick = () => { closeSheet(); render(); }; });
+      };
+    });
+  }
+
+  function confirmSheet(title, text, label, fn) {
+    openSheet(`<h2>${esc(title)}</h2><p class="muted">${esc(text)}</p>
+      <button class="btn danger block" id="cfOk">${esc(label)}</button>
+      <button class="btn ghost block" id="cfNo">Cancelar</button>`, () => {
+      $('#cfNo').onclick = closeSheet;
+      $('#cfOk').onclick = () => { closeSheet(); fn(); };
+    });
+  }
+
+  // ---------- SOS ----------
+  let sosTimers = [];
+  function openSOS() {
+    const v = VERSES[Math.floor(Math.random() * 13)];
+    const opened = Date.now();
+    $('#sosHost').innerHTML = `
+      <div class="sos" role="dialog" aria-modal="true" aria-label="Botão de pânico">
+        <div class="wrap">
+          <div class="spread"><h1>Respire. Isso vai passar.</h1></div>
+          <p class="muted">A vontade costuma perder força em 10 a 15 minutos. Fique aqui, siga a respiração e faça um passo da lista.</p>
+          <div class="breath"><div class="orb" id="orb"><span id="orbTxt">Inspire</span></div></div>
+          <p class="timer" id="sosTimer">00:00 aqui dentro</p>
+          <section class="card"><p class="verse">“${esc(v[0])}”</p><span class="ref">${esc(v[1])}</span></section>
+          <section class="card"><h3>Lembre-se por que você começou</h3>
+            <div class="list">${S.reasons.map(r => `<p>• ${esc(r)}</p>`).join('') || '<p class="muted">Adicione seus motivos no Perfil.</p>'}</div></section>
+          <section class="steps"><h3>Faça agora</h3>${SOS_STEPS.map(s => `<button class="step" aria-pressed="false"><span class="box"></span><span>${esc(s)}</span></button>`).join('')}</section>
+          <button class="btn primary block" id="sosWin">Venci a tentação</button>
+          <button class="btn ghost block" id="sosClose">Fechar</button>
+        </div>
+      </div>`;
+    document.body.style.overflow = 'hidden';
+    document.querySelectorAll('.step').forEach(b => b.onclick = () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'));
+    $('#sosClose').onclick = closeSOS;
+    $('#sosWin').onclick = () => {
+      S.victories.push({ id: uid(), at: new Date().toISOString() });
+      save(); closeSOS(); render(); toast('Vitória registrada. Deus é fiel.');
+    };
+    const phases = [['Inspire', 4, .95], ['Segure', 4, .95], ['Expire', 6, .62]];
+    let i = 0;
+    const orb = $('#orb'), txt = $('#orbTxt');
+    const step = () => {
+      if (!orb.isConnected) return;
+      const [label, secs, scale] = phases[i % 3];
+      txt.textContent = label;
+      orb.style.transitionDuration = secs + 's';
+      orb.style.transform = 'scale(' + scale + ')';
+      i++;
+      sosTimers.push(setTimeout(step, secs * 1000));
+    };
+    sosTimers.push(setTimeout(step, 60));
+    const clock = setInterval(() => {
+      const el = $('#sosTimer'); if (!el) return;
+      const s = Math.floor((Date.now() - opened) / 1000);
+      el.textContent = pad(Math.floor(s / 60)) + ':' + pad(s % 60) + ' aqui dentro';
+    }, 1000);
+    sosTimers.push(clock);
+  }
+  function closeSOS() {
+    sosTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
+    sosTimers = [];
+    $('#sosHost').innerHTML = '';
+    document.body.style.overflow = '';
+  }
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  // ---------- events (delegated) ----------
+  document.addEventListener('click', e => {
+    const t = e.target.closest('button');
+    if (!t || !$('#app').contains(t)) return;
+    const id = t.id;
+    if (id === 'sosBtn') return openSOS();
+    if (id === 'relapseBtn') return relapseSheet();
+    if (id === 'onbSave') {
+      const d = new Date($('#onbDate').value);
+      if (!isNaN(d) && d <= new Date()) S.firstStart = d.toISOString();
+      S.onboarded = true; save(); render(); return toast('Data salva');
+    }
+    if (id === 'onbSkip') { S.onboarded = true; S.firstStart = new Date().toISOString(); save(); return render(); }
+    if (t.dataset.mood) { S.checkins[dayKey(new Date())] = t.dataset.mood; save(); return render(); }
+    if (t.dataset.jmood) { draft.mood = draft.mood === t.dataset.jmood ? null : t.dataset.jmood; return keepText(render); }
+    if (t.dataset.jtrig) {
+      const i = draft.triggers.indexOf(t.dataset.jtrig);
+      i >= 0 ? draft.triggers.splice(i, 1) : draft.triggers.push(t.dataset.jtrig);
+      return keepText(render);
+    }
+    if (id === 'jSave') {
+      const text = $('#jText').value.trim();
+      if (!text && !draft.mood) return toast('Escreva algo ou escolha um humor');
+      S.journal.push({ id: uid(), at: new Date().toISOString(), text, mood: draft.mood, triggers: draft.triggers.slice() });
+      draft = { mood: null, triggers: [] }; save(); render(); return toast('Salvo no diário');
+    }
+    if (t.dataset.del) {
+      const [kind, did] = t.dataset.del.split(':');
+      const list = kind === 'relapse' ? 'relapses' : kind === 'win' ? 'victories' : 'journal';
+      return confirmSheet('Apagar registro?', kind === 'relapse' ? 'Apagar esta recaída muda o seu contador e o desafio do mês.' : 'Esta entrada será removida.', 'Apagar', () => {
+        S[list] = S[list].filter(x => x.id !== did); save(); render();
+      });
+    }
+    if (t.dataset.bnav) { bv = { ...bv, mode: t.dataset.bnav }; render(); return window.scrollTo(0, 0); }
+    if (t.dataset.bk) { bv = { mode: 'chapters', b: +t.dataset.bk, c: 1 }; render(); return window.scrollTo(0, 0); }
+    if (t.dataset.bch) return openChapter(bv.b, +t.dataset.bch);
+    if (id === 'bibCont') { const l = B().last; return l ? openChapter(l[0], l[1]) : openChapter(42, 1); }
+    if (id === 'bibPrev') return stepChapter(-1);
+    if (id === 'bibNext') return stepChapter(1);
+    if (id === 'bibRetry') { loadBible(); return render(); }
+    if (t.dataset.pstart) {
+      const go = () => { B().plan = { id: t.dataset.pstart, start: new Date().toISOString(), done: {} }; bv = { mode: 'plan' }; save(); render(); window.scrollTo(0, 0); toast('Plano iniciado'); };
+      return B().plan ? confirmSheet('Trocar de plano?', 'O progresso do plano atual será perdido. Os capítulos lidos continuam contando na Bíblia.', 'Trocar', go) : go();
+    }
+    if (id === 'planStop') return confirmSheet('Parar o plano?', 'O progresso deste plano será apagado. Os capítulos lidos continuam contando na Bíblia.', 'Parar plano', () => { B().plan = null; bv = { mode: 'books' }; save(); render(); });
+    if (t.dataset.pr) {
+      const [d, i] = t.dataset.pr.split(':').map(Number), ps = planState();
+      const [b, c] = ps.days[d][i];
+      return openChapter(b, c, { d, i });
+    }
+    if (id === 'planRead') {
+      const ps = planState(), { d, i } = bv.ctx;
+      ps.pl.done[d + ':' + i] = new Date().toISOString();
+      B().read[bv.b + ':' + bv.c] = B().read[bv.b + ':' + bv.c] || new Date().toISOString();
+      save();
+      const ni = ps.days[d].findIndex((_, k) => !ps.isDone(d, k));
+      if (ni >= 0) { const [b, c] = ps.days[d][ni]; return openChapter(b, c, { d, i: ni }); }
+      toast('Dia ' + (d + 1) + ' concluído!'); bv = { mode: 'plan' }; render(); return window.scrollTo(0, 0);
+    }
+    if (t.dataset.devo) { bv = { mode: 'devo', devo: +t.dataset.devo }; render(); return window.scrollTo(0, 0); }
+    if (id === 'devoDone') {
+      const dd = B().devo || (B().devo = {}), i = bv.devo ?? devoNext();
+      if (dd[i]) delete dd[i]; else { dd[i] = new Date().toISOString(); toast('Devocional concluído'); }
+      save(); return render();
+    }
+    if (t.dataset.bopen) { const [b, c] = t.dataset.bopen.split(':').map(Number); return openChapter(b, c); }
+    if (id === 'bibRead') {
+      const k = bv.b + ':' + bv.c, rd = B().read;
+      if (rd[k]) { delete rd[k]; save(); return render(); }
+      rd[k] = new Date().toISOString(); save();
+      const st = bibleStats();
+      toast(BOOKS[bv.b] + ' ' + bv.c + ' lido · ' + pctTxt(st.pct) + ' da Bíblia');
+      if (bv.b < 65 || bv.c < BMETA[bv.b].length) return stepChapter(1);
+      return render();
+    }
+    if (t.dataset.mgo) { const [b, c] = t.dataset.mgo.split(':').map(Number); return openChapter(b, c); }
+    if (t.dataset.mdel) { delete B().marks[t.dataset.mdel]; save(); return render(); }
+    if (id === 'dailyBtn') {
+      const k = dayKey(new Date());
+      if (S.dailyDone[k]) delete S.dailyDone[k]; else { S.dailyDone[k] = true; toast('Desafio cumprido. Continue assim!'); }
+      save(); return render();
+    }
+    if (t.dataset.rf) { rFilter = t.dataset.rf; return render(); }
+    if (t.dataset.seen) { const k = t.dataset.seen; if (S.seen[k]) delete S.seen[k]; else S.seen[k] = true; save(); return render(); }
+    if (t.dataset.ldel) { S.links = S.links.filter(l => l.id !== t.dataset.ldel); save(); return render(); }
+    if (id === 'lAdd') {
+      const title = $('#lTitle').value.trim(), url = $('#lUrl').value.trim();
+      if (!/^https?:\/\/\S+$/i.test(url)) return toast('Cole um link começando com https://');
+      S.links.push({ id: uid(), title: title || url, url }); save(); render(); return toast('Link salvo');
+    }
+    if (t.dataset.rdel) { S.reasons.splice(+t.dataset.rdel, 1); save(); return render(); }
+    if (id === 'rAdd') { const v = $('#rNew').value.trim(); if (v) { S.reasons.push(v); save(); render(); } return; }
+    if (id === 'startSave') {
+      const d = new Date($('#startEdit').value);
+      if (isNaN(d) || d > new Date()) return toast('Escolha uma data que já passou');
+      S.firstStart = d.toISOString(); S.onboarded = true; save(); render(); return toast('Início atualizado');
+    }
+    if (id === 'syncNow') { if (CLOUD.ref) cloudPull(false); return; }
+    if (id === 'bkCopy') {
+      const ta = $('#bkOut');
+      const done = () => toast('Backup copiado');
+      try { navigator.clipboard.writeText(ta.value).then(done, () => { ta.select(); toast('Selecionado. Copie manualmente.'); }); }
+      catch (err) { ta.select(); toast('Selecionado. Copie manualmente.'); }
+      return;
+    }
+    if (id === 'bkImport') {
+      try {
+        const s = JSON.parse($('#bkIn').value);
+        if (!s || !s.firstStart || isNaN(new Date(s.firstStart))) throw 0;
+        S = Object.assign(fresh(), s); S.onboarded = true; save(); render(); return toast('Backup restaurado');
+      } catch (err) { return toast('Esse texto não é um backup válido'); }
+    }
+    if (id === 'wipe') {
+      return confirmSheet('Apagar tudo?', 'Contador, diário, recaídas e motivos serão apagados deste aparelho. Não dá para desfazer.', 'Apagar tudo', () => {
+        S = fresh(); save(); location.hash = '#inicio'; render();
+      });
+    }
+  });
+  document.addEventListener('click', e => {
+    const v = e.target.closest('.reader .v');
+    if (!v || !BIBLE) return;
+    const n = +v.dataset.bv, k = bv.b + ':' + bv.c + ':' + n, mk = B().marks;
+    if (mk[k]) { delete mk[k]; v.classList.remove('mk'); }
+    else { mk[k] = { at: new Date().toISOString(), t: BIBLE[bv.b][bv.c - 1][n - 1] }; v.classList.add('mk'); toast(BOOKS[bv.b] + ' ' + bv.c + ':' + n + ' marcado'); }
+    save();
+  });
+  function keepText(fn) { const v = $('#jText') ? $('#jText').value : ''; fn(); if ($('#jText')) $('#jText').value = v; }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { if ($('#sosHost').innerHTML) closeSOS(); else closeSheet(); }
+    if (e.key === 'Enter' && e.target.id === 'rNew') $('#rAdd').click();
+  });
+  window.addEventListener('hashchange', route);
+  route();
+  cloudInit();
+})();
+</script>
