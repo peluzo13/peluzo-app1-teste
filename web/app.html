@@ -380,8 +380,93 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     } catch (e) {}
     return null;
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-  let S = load() || fresh();
+  function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function save() { S.updatedAt = Date.now(); saveLocal(); cloudSchedule(); }
+  const loaded = load();
+  let S = loaded || fresh();
+  const pristine = !loaded; // aparelho novo: a conta tem prioridade
+  if (loaded && !S.updatedAt) S.updatedAt = 1; // dados de antes da conta: valem, mas perdem para um salvamento real mais novo
+  const untouched = () => pristine && (S.updatedAt || 0) < 2; // ninguém usou o app neste aparelho ainda
+  const isEmptyState = st => !st.onboarded && !(st.relapses || []).length && !(st.journal || []).length && !(st.victories || []).length && !Object.keys(((st.bible || {}).read) || {}).length && !Object.keys(((st.bible || {}).devo) || {}).length;
+
+  // ---------- Conta (progresso salvo na conta Claude) ----------
+  const CLOUD = { ref: null, status: 'checking', name: '', avatar: '', lastSync: 0, ready: false, timer: null, chain: Promise.resolve() };
+  function cloudSchedule() {
+    if (!CLOUD.ready || !CLOUD.ref) return;
+    clearTimeout(CLOUD.timer);
+    CLOUD.timer = setTimeout(cloudPush, 1200);
+  }
+  function cloudPush() {
+    if (!CLOUD.ref || untouched() || isEmptyState(S) && !S.updatedAt) return Promise.resolve();
+    CLOUD.chain = CLOUD.chain.then(async () => {
+      const body = JSON.stringify(S);
+      if (body.length > 240000) { CLOUD.status = 'big'; refreshAccount(); return; }
+      CLOUD.status = 'saving'; refreshAccount();
+      try {
+        await CLOUD.ref.set({ state: body, updatedAt: S.updatedAt || Date.now(), v: 1 });
+        CLOUD.status = 'ok'; CLOUD.lastSync = Date.now();
+      } catch (e) { CLOUD.status = 'error'; }
+      refreshAccount();
+    });
+    return CLOUD.chain;
+  }
+  const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), ms))]);
+  async function cloudPull(first) {
+    CLOUD.status = 'saving'; refreshAccount();
+    try {
+      const snap = await withTimeout(CLOUD.ref.get(), 10000);
+      if (snap.exists) {
+        const d = snap.data() || {};
+        let remote = null; try { remote = JSON.parse(d.state); } catch (e) {}
+        const valid = remote && remote.firstStart && !isEmptyState(remote);
+        const rT = (valid && remote.updatedAt) || 0, lT = S.updatedAt || 0;
+        if (valid && ((first && untouched()) || rT > lT)) {
+          S = Object.assign(fresh(), remote); saveLocal(); render();
+          if (first) toast('Progresso carregado da sua conta');
+        } else if (!untouched() && lT > rT) { CLOUD.ready = true; return cloudPush(); }
+      } else if (!untouched()) { CLOUD.ready = true; return cloudPush(); }
+      CLOUD.status = 'ok'; CLOUD.lastSync = Date.now();
+    } catch (e) { CLOUD.status = 'error'; }
+    CLOUD.ready = true; refreshAccount();
+  }
+  async function cloudInit() {
+    try {
+      if (!window.claude || !window.claude.use) { CLOUD.status = 'local'; return refreshAccount(); }
+      const [user, db] = await Promise.all([window.claude.use('user'), window.claude.use('db')]);
+      const id = user ? await user.id() : null;
+      if (!user || !db || !id) { CLOUD.status = 'local'; return refreshAccount(); }
+      try { const me = await user.me(); CLOUD.name = me.name || ''; CLOUD.avatar = me.avatarUrl || ''; } catch (e) {}
+      CLOUD.ref = db.doc('data/users/' + id + '/progress');
+      await cloudPull(true);
+    } catch (e) { CLOUD.status = 'error'; refreshAccount(); }
+  }
+  function accountCard() {
+    const st = CLOUD.status;
+    const ago = CLOUD.lastSync ? new Date(CLOUD.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+    const line = {
+      checking: 'Procurando sua conta…',
+      saving: 'Sincronizando…',
+      ok: 'Progresso salvo na sua conta' + (ago ? ' às ' + ago : ''),
+      error: 'Não consegui salvar agora. Seus dados estão seguros neste aparelho e vão subir na próxima sincronização.',
+      big: 'Seus dados ficaram grandes demais para a nuvem. Apague entradas antigas do diário.',
+      local: 'Salvo só neste aparelho. Abra o Firme pelo link do Claude, com a sua conta conectada, para guardar o progresso na nuvem.',
+    }[st] || '';
+    const dot = { ok: 'var(--ok)', saving: 'var(--gold)', checking: 'var(--gold)', error: 'var(--danger)', big: 'var(--danger)', local: 'var(--muted)' }[st];
+    return `<section class="card" id="accountCard">
+      <div class="row" style="flex-wrap:nowrap">
+        ${CLOUD.avatar ? `<img src="${esc(CLOUD.avatar)}" alt="" style="width:44px;height:44px;border-radius:50%;flex:none">` : `<span style="width:44px;height:44px;border-radius:50%;background:var(--surface-2);flex:none;display:grid;place-items:center">${LOGO.replace('aria-hidden', 'width="26" height="26" aria-hidden')}</span>`}
+        <div style="min-width:0;display:grid;gap:2px">
+          <b style="font-family:var(--font-display);font-size:17px;overflow-wrap:anywhere">${CLOUD.ref ? esc(CLOUD.name || 'Sua conta') : 'Sem conta conectada'}</b>
+          <span style="font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:baseline"><i style="width:8px;height:8px;border-radius:50%;background:${dot};flex:none;display:inline-block"></i><span>${line}</span></span>
+        </div>
+      </div>
+      ${CLOUD.ref ? '<button class="btn ghost" id="syncNow">Sincronizar agora</button><p class="muted" style="font-size:12px">Seu progresso fica numa área privada da sua conta: só você vê. Ao abrir o Firme em outro aparelho com a mesma conta, tudo aparece lá.</p>' : ''}
+    </section>`;
+  }
+  function refreshAccount() {
+    const el = document.getElementById('accountCard');
+    if (el) el.outerHTML = accountCard();
+  }
 
   // ---------- helpers ----------
   const $ = (s, r = document) => r.querySelector(s);
@@ -609,6 +694,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const reached = Math.max(cur, best);
     return `
       <header class="top"><h1>Perfil</h1></header>
+      ${accountCard()}
       <section class="stats">
         <div class="stat"><b>${Math.floor(cur)}</b><span>Sequência atual</span></div>
         <div class="stat"><b>${Math.floor(best)}</b><span>Melhor sequência</span></div>
@@ -1217,6 +1303,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       if (isNaN(d) || d > new Date()) return toast('Escolha uma data que já passou');
       S.firstStart = d.toISOString(); S.onboarded = true; save(); render(); return toast('Início atualizado');
     }
+    if (id === 'syncNow') { if (CLOUD.ref) cloudPull(false); return; }
     if (id === 'bkCopy') {
       const ta = $('#bkOut');
       const done = () => toast('Backup copiado');
@@ -1252,5 +1339,6 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   });
   window.addEventListener('hashchange', route);
   route();
+  cloudInit();
 })();
 </script>
