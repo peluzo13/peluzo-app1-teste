@@ -185,6 +185,19 @@ textarea { min-height: 96px; resize: vertical; }
 .devo h4 { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .devo .body { font-size: 16px; line-height: 1.65; }
 
+.cal .d { position: relative; }
+.cal .d.bib::after { content: ""; position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--fg); }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 9px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.chart .bar-m { fill: var(--gold); pointer-events: none; }
+.chart .bar-m.today { fill: var(--fg); }
+.chart .devo-dot { fill: var(--muted); pointer-events: none; }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .hit:hover + .bar-m, .chart .sel { opacity: .75; }
+.chart-tip { font-size: 13px; color: var(--muted); min-height: 20px; font-variant-numeric: tabular-nums; }
+.chart-tip b { color: var(--fg); font-weight: 600; }
+
 /* Tab bar */
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -466,6 +479,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const daysIn = new Date(y, m + 1, 0).getDate();
     const monthName = now.toLocaleString('pt-BR', { month: 'long' });
     const relDays = new Set(S.relapses.map(r => dayKey(r.at)));
+    const bibDays = new Set([...Object.values(B().read), ...Object.values(B().devo || {})].map(dayKey));
     const todayK = dayKey(now), startK = dayKey(S.firstStart);
     let clean = 0, fails = 0;
     const cells = [];
@@ -479,10 +493,11 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       else if (relDays.has(k)) { cls = 'fail'; fails++; }
       else if (k === todayK) cls = 'today';
       else { cls = 'clean'; clean++; }
-      cells.push(`<span class="d ${cls}">${d}</span>`);
+      cells.push(`<span class="d ${cls} ${bibDays.has(k) ? 'bib' : ''}">${d}</span>`);
     }
     const groups = [];
     for (let left = clean; left > 0; left -= 5) groups.push(tallySvg(Math.min(5, left)));
+    const bib = bibleMonth(y, m, daysIn);
     const remaining = daysIn - now.getDate();
     return `
       <header class="top"><h1>Desafio de ${monthName}</h1></header>
@@ -493,13 +508,68 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       </section>
       <section class="card">
         <div class="cal">${['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(x => `<span class="dow">${x}</span>`).join('')}${cells.join('')}</div>
-        <div class="legend"><span><i style="background:var(--gold)"></i>Limpo</span><span><i style="background:var(--danger)"></i>Recaída</span><span><i style="border:2px solid var(--gold)"></i>Hoje</span></div>
+        <div class="legend"><span><i style="background:var(--gold)"></i>Limpo</span><span><i style="background:var(--danger)"></i>Recaída</span><span><i style="border:2px solid var(--gold)"></i>Hoje</span><span><i style="background:var(--fg);border-radius:50%;width:6px;height:6px;vertical-align:1px"></i>Leu a Bíblia</span></div>
       </section>
       <section class="stats">
         <div class="stat"><b>${clean}</b><span>Dias limpos no mês</span></div>
         <div class="stat"><b>${fails}</b><span>Recaídas no mês</span></div>
+      </section>
+      <section class="card">
+        <div class="spread"><h2>Bíblia em ${monthName}</h2><a href="#biblia" class="chip" style="text-decoration:none;color:var(--fg)">Ler agora</a></div>
+        <div class="stats">
+          <div class="stat"><b>${bib.days}</b><span>Dias com leitura no mês</span></div>
+          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos lendo</span></div>
+          <div class="stat"><b>${bib.chapters}</b><span>Capítulos no mês</span></div>
+          <div class="stat"><b>${bib.devos}</b><span>Devocionais no mês</span></div>
+        </div>
+        <span class="eyebrow">Capítulos lidos por dia</span>
+        ${bibleChart(bib, daysIn, now.getDate())}
+        <p class="chart-tip" id="chartTip">Toque numa barra para ver o dia.</p>
+        <p class="muted" style="font-size:12px">O ponto embaixo marca os dias em que você fez só o devocional.</p>
       </section>`;
   }
+  function bibleMonth(y, m, daysIn) {
+    const bb = B(), per = Array(daysIn + 1).fill(0), dv = Array(daysIn + 1).fill(false);
+    const inMonth = iso => { const d = new Date(iso); return d.getFullYear() === y && d.getMonth() === m ? d.getDate() : 0; };
+    Object.values(bb.read).forEach(iso => { const d = inMonth(iso); if (d) per[d]++; });
+    Object.values(bb.devo || {}).forEach(iso => { const d = inMonth(iso); if (d) dv[d] = true; });
+    const allDays = new Set([...Object.values(bb.read), ...Object.values(bb.devo || {})].map(dayKey));
+    let streak = 0; const t = new Date(); t.setHours(12, 0, 0, 0);
+    if (!allDays.has(dayKey(t))) t.setDate(t.getDate() - 1);
+    while (allDays.has(dayKey(t))) { streak++; t.setDate(t.getDate() - 1); }
+    let days = 0; for (let d = 1; d <= daysIn; d++) if (per[d] || dv[d]) days++;
+    return { per, dv, days, streak, chapters: per.reduce((a, b) => a + b, 0), devos: dv.filter(Boolean).length };
+  }
+  function bibleChart(bib, daysIn, today) {
+    const W = 340, H = 140, L = 22, R = 4, T = 10, Bm = 22, ph = H - T - Bm;
+    const step = (W - L - R) / daysIn, bw = Math.max(3, step - 2);
+    const mx = Math.max(4, ...bib.per);
+    const top = Math.ceil(mx / 2) * 2, yv = v => T + ph - v / top * ph;
+    let g = '';
+    [0, top / 2, top].forEach(v => { g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${yv(v)}" y2="${yv(v)}"/><text class="axis" x="${L - 5}" y="${yv(v) + 3}" text-anchor="end">${v}</text>`; });
+    const ticks = [1, 5, 10, 15, 20, 25, daysIn].filter((v, i, a) => a.indexOf(v) === i && !(v !== daysIn && daysIn - v < 3));
+    ticks.forEach(d => { g += `<text class="axis" x="${L + (d - .5) * step}" y="${H - 6}" text-anchor="middle">${d}</text>`; });
+    for (let d = 1; d <= daysIn; d++) {
+      const x = L + (d - 1) * step + (step - bw) / 2, v = bib.per[d];
+      g += `<rect class="hit" data-bar="${d}" x="${L + (d - 1) * step}" y="${T}" width="${step}" height="${ph + 8}"/>`;
+      if (v) {
+        const h = Math.max(4, v / top * ph), y0 = T + ph, r = Math.min(4, bw / 2);
+        g += `<path class="bar-m ${d === today ? 'today' : ''}" d="M${x} ${y0}V${y0 - h + r}q0 -${r} ${r} -${r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${y0}z"/>`;
+      } else if (bib.dv[d]) g += `<circle class="devo-dot" cx="${x + bw / 2}" cy="${T + ph - 3}" r="2.5"/>`;
+    }
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Capítulos lidos por dia neste mês: ${bib.chapters} no total">${g}</svg>`;
+  }
+  function showBarTip(d) {
+    const now = new Date(), daysIn = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const bib = bibleMonth(now.getFullYear(), now.getMonth(), daysIn), n = bib.per[d];
+    const label = new Date(now.getFullYear(), now.getMonth(), d).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+    const tip = $('#chartTip'); if (!tip) return;
+    tip.innerHTML = `<b>${label}</b> · ${n} ${n === 1 ? 'capítulo' : 'capítulos'}${bib.dv[d] ? ' · devocional feito' : ''}`;
+    document.querySelectorAll('.chart .sel').forEach(e => e.classList.remove('sel'));
+    const h = document.querySelector(`.chart .hit[data-bar="${d}"]`); if (h && h.nextElementSibling && h.nextElementSibling.classList.contains('bar-m')) h.nextElementSibling.classList.add('sel');
+  }
+  document.addEventListener('click', e => { const h = e.target.closest && e.target.closest('.chart .hit'); if (h) showBarTip(+h.dataset.bar); });
+  document.addEventListener('mouseover', e => { const h = e.target.closest && e.target.closest('.chart .hit'); if (h) showBarTip(+h.dataset.bar); });
 
   let draft = { mood: null, triggers: [] };
   function viewDiario() {
