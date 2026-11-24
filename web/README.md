@@ -1,6 +1,6 @@
-# Liberto
+# Firme
 
-App pessoal para vencer a luxúria: contador de dias limpo, botão de pânico com respiração guiada,
+App pessoal para vencer a luxúria (Gálatas 5:1, “estai firmes”): contador de dias limpo, botão de pânico com respiração guiada,
 desafio do mês com risquinhos na parede, diário de gatilhos, marcos e versículos.
 
 - Código-fonte: `web/app.html`
