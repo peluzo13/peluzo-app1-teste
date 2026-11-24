@@ -261,25 +261,48 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     'Mandei mensagem para alguém de confiança',
   ];
 
+  // YouTube: busca (sempre abre). "Em alta" = mais vistos do mês. Spotify: só perfis verificados.
   const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
-  const sp = q => 'https://open.spotify.com/search/' + encodeURIComponent(q) + '/podcasts';
+  const ytHot = q => yt(q) + '&sp=CAMSAggE';
+  const ytTop = q => yt(q) + '&sp=CAM%3D';
+  const spShow = id => 'https://open.spotify.com/show/' + id;
   const RESOURCES = [
-    { id: 'p1', type: 'Pregações', title: 'Pureza sexual e santidade', who: 'Augustus Nicodemus', desc: 'Exposição bíblica clara e sóbria sobre sexualidade, santidade e graça.', q: 'Augustus Nicodemus pureza sexual' },
-    { id: 'p2', type: 'Pregações', title: 'José e a vitória sobre a tentação', who: 'Hernandes Dias Lopes', desc: 'Gênesis 39: fugir da tentação e manter a fidelidade quando ninguém está vendo.', q: 'Hernandes Dias Lopes José tentação' },
-    { id: 'p3', type: 'Pregações', title: 'Pureza e intimidade com Deus', who: 'Luciano Subirá', desc: 'Santidade como fruto de uma vida de devoção, não só de esforço.', q: 'Luciano Subirá pureza sexual' },
-    { id: 'p4', type: 'Pregações', title: 'Pregações para jovens sobre pureza', who: 'Lucinho Barreto', desc: 'Linguagem direta, para quem precisa de um chacoalhão e de esperança.', q: 'Lucinho Barreto pureza sexual' },
-    { id: 'p5', type: 'Pregações', title: 'Vencendo a tentação', who: 'Deive Leonardo', desc: 'Mensagens de fogo para a juventude sobre identidade e santidade.', q: 'Deive Leonardo pureza tentação' },
-    { id: 'p6', type: 'Pregações', title: 'Pecado sexual e o evangelho (legendado)', who: 'Paul Washer', desc: 'Sermões fortes sobre arrependimento verdadeiro e a seriedade do pecado.', q: 'Paul Washer pecado sexual legendado' },
-    { id: 'v1', type: 'Vídeos', title: 'Pornografia: como vencer', who: 'Dois Dedos de Teologia · Yago Martins', desc: 'Teologia bem fundamentada com aplicação prática.', q: 'Dois Dedos de Teologia pornografia' },
-    { id: 'v2', type: 'Vídeos', title: 'Estratégias para lutar contra a luxúria', who: 'John Piper', desc: 'O método A.N.T.H.E.M.: evitar, dizer não, voltar a mente, segurar a promessa, aproveitar algo melhor, mover-se.', q: 'John Piper luxúria legendado' },
-    { id: 'v3', type: 'Vídeos', title: 'The Great Porn Experiment (TEDx, legendado)', who: 'Gary Wilson', desc: 'Como a pornografia afeta o cérebro e por que parar devolve energia e foco.', q: 'Gary Wilson The Great Porn Experiment' },
-    { id: 'v4', type: 'Vídeos', title: 'Pornografia e o evangelho', who: 'Voltemos ao Evangelho', desc: 'Conteúdo curto e bíblico sobre culpa, graça e mudança real.', q: 'Voltemos ao Evangelho pornografia' },
-    { id: 'c1', type: 'Podcasts', title: 'Episódios sobre sexualidade cristã', who: 'BTCast · Bibotalk', desc: 'Conversas teológicas sobre sexualidade, desejo e santificação.', q: 'BTCast sexualidade' },
-    { id: 'c2', type: 'Podcasts', title: 'Ask Pastor John: lust', who: 'Desiring God (inglês)', desc: 'Respostas curtas a perguntas reais sobre luxúria, culpa e recomeço.', q: 'Ask Pastor John lust' },
-    { id: 'c3', type: 'Podcasts', title: 'Pregações em áudio', who: 'Hernandes Dias Lopes', desc: 'Para ouvir no carro, na academia ou antes de dormir.', q: 'Hernandes Dias Lopes pregação' },
-    { id: 'c4', type: 'Podcasts', title: 'Mais conteúdo sobre pureza', who: 'Busca geral', desc: 'Podcasts e vídeos cristãos em português sobre pureza e vício em pornografia.', q: 'pureza sexual cristão pornografia' },
+    // Em alta
+    { id: 'h1', type: 'Em alta', title: 'Pregações mais vistas do mês', who: 'YouTube · este mês', desc: 'As pregações que mais estão sendo assistidas agora no Brasil.', yt: ytHot('pregação evangélica') },
+    { id: 'h2', type: 'Em alta', title: 'Pregações para jovens em alta', who: 'YouTube · este mês', desc: 'Mensagens recentes e mais assistidas para a juventude.', yt: ytHot('pregação para jovens') },
+    { id: 'h3', type: 'Em alta', title: 'Mais vistas sobre pureza', who: 'YouTube · mais vistos', desc: 'As pregações sobre pureza sexual com mais visualizações.', yt: ytTop('pregação pureza sexual') },
+    { id: 'h4', type: 'Em alta', title: 'Mais vistos sobre vencer a pornografia', who: 'YouTube · mais vistos', desc: 'Vídeos cristãos mais assistidos sobre largar o vício.', yt: ytTop('como vencer a pornografia cristão') },
+    // Pregações
+    { id: 'p1', type: 'Pregações', title: 'Pregação expositiva', who: 'Augustus Nicodemus', desc: 'Exposição bíblica clara e sóbria. No YouTube, a busca já vai direto ao tema pureza.', yt: yt('Augustus Nicodemus pureza sexual'), sp: spShow('1HOBamzxOgg72MIKszmp1u') },
+    { id: 'p2', type: 'Pregações', title: 'José e a vitória sobre a tentação', who: 'Hernandes Dias Lopes', desc: 'Gênesis 39: fugir da tentação quando ninguém está vendo. No Spotify, as pregações da IP Pinheiros.', yt: yt('Hernandes Dias Lopes José tentação'), sp: spShow('4Ab5dKpP4TxEXK1kfTqklu') },
+    { id: 'p3', type: 'Pregações', title: 'Sermões', who: 'Yago Martins', desc: 'Pregações bíblicas e diretas, com aplicação para a vida real.', yt: yt('Yago Martins pornografia'), sp: spShow('2jvzfoN67DpyhbYpO8r3La') },
+    { id: 'p4', type: 'Pregações', title: 'Pureza e intimidade com Deus', who: 'Luciano Subirá', desc: 'Santidade como fruto de uma vida de devoção, não só de esforço.', yt: yt('Luciano Subirá pureza sexual') },
+    { id: 'p5', type: 'Pregações', title: 'Pregações para jovens sobre pureza', who: 'Lucinho Barreto', desc: 'Linguagem direta, para quem precisa de um chacoalhão e de esperança.', yt: yt('Lucinho Barreto pureza sexual') },
+    { id: 'p6', type: 'Pregações', title: 'Vencendo a tentação', who: 'Deive Leonardo', desc: 'Mensagens para a juventude sobre identidade e santidade.', yt: yt('Deive Leonardo pureza tentação') },
+    { id: 'p7', type: 'Pregações', title: 'Pecado sexual e o evangelho (legendado)', who: 'Paul Washer', desc: 'Sermões fortes sobre arrependimento verdadeiro.', yt: yt('Paul Washer pecado sexual legendado') },
+    // Vídeos
+    { id: 'v1', type: 'Vídeos', title: 'Pornografia: como vencer', who: 'Dois Dedos de Teologia', desc: 'Teologia bem fundamentada com aplicação prática.', yt: yt('Dois Dedos de Teologia pornografia') },
+    { id: 'v2', type: 'Vídeos', title: 'Estratégias para lutar contra a luxúria', who: 'John Piper', desc: 'O método A.N.T.H.E.M.: evitar, dizer não, voltar a mente, segurar a promessa, aproveitar algo melhor, mover-se.', yt: yt('John Piper luxúria legendado') },
+    { id: 'v3', type: 'Vídeos', title: 'The Great Porn Experiment (TEDx)', who: 'Gary Wilson', desc: 'Como a pornografia afeta o cérebro e por que parar devolve energia e foco.', yt: yt('Gary Wilson The Great Porn Experiment legendado') },
+    { id: 'v4', type: 'Vídeos', title: 'Pornografia e o evangelho', who: 'Voltemos ao Evangelho', desc: 'Conteúdo curto e bíblico sobre culpa, graça e mudança real.', yt: yt('Voltemos ao Evangelho pornografia') },
+    // Motivação
+    { id: 'm1', type: 'Motivação', title: 'Motivação cristã', who: 'YouTube', desc: 'Vídeos curtos para levantar a cabeça e lembrar quem você é em Cristo.', yt: ytTop('motivação cristã') },
+    { id: 'm2', type: 'Motivação', title: 'Disciplina vence a vontade', who: 'YouTube', desc: 'Vídeos sobre disciplina, constância e domínio próprio.', yt: ytTop('motivação disciplina foco') },
+    { id: 'm3', type: 'Motivação', title: 'Fé, coragem e superação', who: 'Nando Pinheiro', desc: 'Mensagens para fortalecer a mente e seguir em frente com foco.', yt: yt('Nando Pinheiro motivação'), sp: spShow('1bgfyvoyJr5QbuzC0bkHt7') },
+    { id: 'm4', type: 'Motivação', title: 'Música para foco e concentração', who: 'YouTube', desc: 'Para estudar ou trabalhar sem a mente vagar.', yt: ytTop('música para foco e concentração') },
+    // Treino
+    { id: 't1', type: 'Treino', title: 'Treino em casa sem equipamento', who: 'YouTube · 20 minutos', desc: 'Quando bater a vontade, levante e treine. Gasta a energia e limpa a cabeça.', yt: ytTop('treino em casa sem equipamento 20 minutos') },
+    { id: 't2', type: 'Treino', title: 'HIIT de 15 minutos', who: 'YouTube', desc: 'Treino intenso e curto para quebrar a ansiedade na hora.', yt: ytTop('treino HIIT 15 minutos em casa') },
+    { id: 't3', type: 'Treino', title: 'Desafio de flexões', who: 'YouTube', desc: 'Progressão de flexões para fazer todo dia e ver evolução.', yt: ytTop('desafio de flexões 30 dias') },
+    { id: 't4', type: 'Treino', title: 'Música para treinar', who: 'YouTube', desc: 'Playlist de motivação para o treino.', yt: ytTop('música motivação treino academia') },
+    // Podcasts (Spotify)
+    { id: 'c1', type: 'Podcasts', title: 'Vida Pura', who: 'Ministério Vida Pura · português', desc: 'Podcast de um ministério que aconselha pessoas com vício em pornografia, com base bíblica e neurociência.', sp: spShow('69IOPfmMKvQiG99aagNZv3') },
+    { id: 'c2', type: 'Podcasts', title: 'Em Poucas Palavras', who: 'Augustus Nicodemus · 15 min', desc: 'Respostas curtas a dúvidas comuns da fé cristã.', sp: spShow('1675FPM5Ngt2JzXSN4h5l0') },
+    { id: 'c3', type: 'Podcasts', title: 'Ask Pastor John', who: 'John Piper · inglês', desc: 'Respostas curtas a perguntas reais sobre luxúria, culpa e recomeço.', sp: spShow('5vPg9kNdtiKdsjAaox2jOC') },
+    { id: 'c4', type: 'Podcasts', title: 'Light + Truth', who: 'John Piper · inglês', desc: 'Sermões clássicos de Piper em episódios de 20 minutos.', sp: spShow('6JcvtQkpUuFOKmFEn6r0f5') },
+    { id: 'c5', type: 'Podcasts', title: 'Pure Life Ministries Podcast', who: 'Pure Life Ministries · inglês', desc: 'Programa semanal para quem luta contra o pecado sexual.', sp: spShow('2q41vtreFkC8UkrRibpF65') },
   ];
-  const RTYPES = ['Todos', 'Pregações', 'Vídeos', 'Podcasts'];
+  const RTYPES = ['Todos', 'Em alta', 'Pregações', 'Vídeos', 'Motivação', 'Treino', 'Podcasts'];
   const DAILY = [
     'Ore 5 minutos ao acordar, antes de pegar o celular.',
     'Deixe o celular fora do quarto esta noite.',
@@ -531,8 +554,8 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <span class="who">${esc(r.who)}</span>
       <p>${esc(r.desc)}</p>
       <div class="acts">
-        <a class="link" href="${esc(yt(r.q))}" target="_blank" rel="noopener">YouTube</a>
-        <a class="link spot" href="${esc(sp(r.q))}" target="_blank" rel="noopener">Spotify</a>
+        ${r.yt ? `<a class="link" href="${esc(r.yt)}" target="_blank" rel="noopener">YouTube</a>` : ''}
+        ${r.sp ? `<a class="link spot" href="${esc(r.sp)}" target="_blank" rel="noopener">Spotify</a>` : ''}
         <button class="chip" data-seen="${r.id}" aria-pressed="${!!seen}">${seen ? 'Já vi' : 'Marcar como visto'}</button>
       </div>
     </article>`;
@@ -542,7 +565,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const todayK = dayKey(new Date());
     const task = DAILY[dayN % DAILY.length];
     const done = !!S.dailyDone[todayK];
-    const featPool = RESOURCES.filter(r => r.type !== 'Podcasts');
+    const featPool = RESOURCES.filter(r => r.type === 'Pregações' || r.type === 'Em alta' || r.type === 'Vídeos');
     const feat = featPool[dayN % featPool.length];
     const list = RESOURCES.filter(r => r.id !== feat.id && (rFilter === 'Todos' || r.type === rFilter));
     const daysDone = Object.keys(S.dailyDone).length;
@@ -564,7 +587,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         <input id="lUrl" type="url" placeholder="Link (https://…)">
         <button class="btn" id="lAdd">Salvar link</button>
       </section>
-      <p class="muted" style="font-size:12px">Os botões abrem uma busca pelo pregador ou tema no YouTube e no Spotify, então você sempre vê os conteúdos mais recentes.</p>`;
+      <p class="muted" style="font-size:12px">No YouTube, os botões abrem uma busca pelo tema, então você sempre vê o que há de mais recente. No Spotify, abrem direto o podcast.</p>`;
   }
 
   // ---------- routing & render ----------
