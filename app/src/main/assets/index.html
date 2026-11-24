@@ -146,6 +146,22 @@ textarea { min-height: 96px; resize: vertical; }
 
 .banner { background: var(--gold-soft); border: 1px solid rgba(228,179,92,.4); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
 
+/* Incentivo */
+.feature { background: linear-gradient(160deg, #2a2418, var(--surface) 70%); border: 1px solid rgba(228,179,92,.3); }
+.res { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 8px; min-width: 0; }
+.res h3 { font-size: 15px; }
+.res .who { font-size: 13px; color: var(--gold); font-weight: 600; }
+.res p { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.res .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.link { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 8px 14px; background: var(--gold); color: #1a1408; font-weight: 600; font-size: 13px; text-decoration: none; }
+.link.alt { background: var(--surface-2); color: var(--fg); }
+.res.seen { opacity: .6; }
+.daily { display: flex; gap: 12px; align-items: flex-start; }
+.daily .box { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--gold); flex: none; display: grid; place-items: center; margin-top: 2px; }
+.daily[aria-pressed="true"] .box { background: var(--gold); }
+.daily[aria-pressed="true"] .box::after { content: ""; width: 10px; height: 6px; border-left: 2.5px solid #1a1408; border-bottom: 2.5px solid #1a1408; transform: rotate(-45deg) translate(1px,-1px); }
+.daily { text-align: left; width: 100%; }
+
 /* Tab bar */
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -153,7 +169,7 @@ nav.tabs {
   border-top: 1px solid var(--line);
   padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
 }
-nav.tabs .inner { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+nav.tabs .inner { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
 nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 11px; color: var(--muted); text-decoration: none; padding: 4px 0; font-weight: 500; }
 nav.tabs a svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 nav.tabs a[aria-current="page"] { color: var(--gold); }
@@ -195,6 +211,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   <div class="inner">
     <a href="#inicio" data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h10"/></svg>Início</a>
     <a href="#desafio" data-tab="desafio"><svg viewBox="0 0 24 24"><path d="M5 5v14M9 5v14M13 5v14M17 5v14M3 17 19 7"/></svg>Desafio</a>
+    <a href="#incentivo" data-tab="incentivo"><svg viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2-4.7.3 1.7 1.2 2.7 2 2.7 0-3 0-5.5 1-8z"/></svg>Incentivo</a>
     <a href="#diario" data-tab="diario"><svg viewBox="0 0 24 24"><path d="M6 3h11a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>Diário</a>
     <a href="#perfil" data-tab="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</a>
   </div>
@@ -244,6 +261,44 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     'Mandei mensagem para alguém de confiança',
   ];
 
+  const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  const sp = q => 'https://open.spotify.com/search/' + encodeURIComponent(q) + '/podcasts';
+  const gg = q => 'https://www.google.com/search?q=' + encodeURIComponent(q);
+  const RESOURCES = [
+    { id: 'p1', type: 'Pregações', title: 'Pureza sexual e santidade', who: 'Augustus Nicodemus', desc: 'Exposição bíblica clara e sóbria sobre sexualidade, santidade e graça.', url: yt('Augustus Nicodemus pureza sexual'), site: 'YouTube' },
+    { id: 'p2', type: 'Pregações', title: 'José e a vitória sobre a tentação', who: 'Hernandes Dias Lopes', desc: 'Gênesis 39: fugir da tentação e manter a fidelidade quando ninguém está vendo.', url: yt('Hernandes Dias Lopes José tentação'), site: 'YouTube' },
+    { id: 'p3', type: 'Pregações', title: 'Pureza e intimidade com Deus', who: 'Luciano Subirá', desc: 'Ensino sobre santidade como fruto de uma vida de devoção, não só de esforço.', url: yt('Luciano Subirá pureza sexual'), site: 'YouTube' },
+    { id: 'p4', type: 'Pregações', title: 'Pregações para jovens sobre pureza', who: 'Lucinho Barreto', desc: 'Linguagem direta, para quem precisa de um chacoalhão e de esperança.', url: yt('Lucinho Barreto pureza sexual'), site: 'YouTube' },
+    { id: 'p5', type: 'Pregações', title: 'Pecado sexual e o evangelho (legendado)', who: 'Paul Washer', desc: 'Sermões fortes sobre arrependimento verdadeiro e a seriedade do pecado.', url: yt('Paul Washer pecado sexual legendado'), site: 'YouTube' },
+    { id: 'v1', type: 'Vídeos', title: 'Pornografia: como vencer', who: 'Dois Dedos de Teologia · Yago Martins', desc: 'Vídeos curtos e bem fundamentados, com teologia e aplicação prática.', url: yt('Dois Dedos de Teologia pornografia'), site: 'YouTube' },
+    { id: 'v2', type: 'Vídeos', title: 'Estratégias para lutar contra a luxúria', who: 'John Piper', desc: 'O método A.N.T.H.E.M.: evitar, dizer não, voltar a mente, segurar a promessa, aproveitar algo melhor, mover-se.', url: yt('John Piper luxúria legendado'), site: 'YouTube' },
+    { id: 'v3', type: 'Vídeos', title: 'The Great Porn Experiment (TEDx, legendado)', who: 'Gary Wilson', desc: 'Como a pornografia afeta o cérebro e por que parar devolve energia e foco.', url: yt('Gary Wilson The Great Porn Experiment legendado'), site: 'YouTube' },
+    { id: 'c1', type: 'Podcasts', title: 'Episódios sobre sexualidade cristã', who: 'BTCast · Bibotalk', desc: 'Conversas teológicas sobre sexualidade, desejo e santificação.', url: sp('BTCast sexualidade'), site: 'Spotify' },
+    { id: 'c2', type: 'Podcasts', title: 'Ask Pastor John: lust', who: 'Desiring God (inglês)', desc: 'Respostas curtas a perguntas reais sobre luxúria, culpa e recomeço.', url: sp('Ask Pastor John lust'), site: 'Spotify' },
+    { id: 'c3', type: 'Podcasts', title: 'Mais podcasts sobre pureza', who: 'Busca no Spotify', desc: 'Lista de podcasts cristãos em português sobre pureza e vício em pornografia.', url: sp('pureza sexual cristão'), site: 'Spotify' },
+    { id: 'l1', type: 'Leitura', title: 'Artigos sobre pornografia e pureza', who: 'Voltemos ao Evangelho', desc: 'Dezenas de artigos curtos para ler em 5 minutos quando bater a vontade.', url: gg('site:voltemosaoevangelho.com pornografia'), site: 'Google' },
+    { id: 'l2', type: 'Leitura', title: 'Finalmente Livre (Finally Free)', who: 'Heath Lambert', desc: 'Livro prático sobre vencer a pornografia pelo poder da graça.', url: gg('Heath Lambert Finalmente Livre livro'), site: 'Google' },
+    { id: 'l3', type: 'Leitura', title: 'ANTHEM: estratégias contra a luxúria', who: 'John Piper · Desiring God', desc: 'O artigo original por trás do método A.N.T.H.E.M.', url: gg('John Piper ANTHEM strategies for fighting lust'), site: 'Google' },
+  ];
+  const RTYPES = ['Todos', 'Pregações', 'Vídeos', 'Podcasts', 'Leitura'];
+  const DAILY = [
+    'Ore 5 minutos ao acordar, antes de pegar o celular.',
+    'Deixe o celular fora do quarto esta noite.',
+    'Leia o capítulo de Provérbios do dia de hoje.',
+    'Faça 30 minutos de exercício.',
+    'Mande uma mensagem encorajando um amigo.',
+    'Escreva no diário 3 coisas pelas quais você é grato.',
+    'Silencie ou apague um app que te faz tropeçar.',
+    'Durma antes das 23h.',
+    'Memorize 1 Coríntios 10:13.',
+    'Ajude alguém sem que te peçam.',
+    'Fique 1 hora sem tela depois do jantar.',
+    'Conte uma luta sua a alguém de confiança.',
+    'Leia o Salmo 51 devagar, como oração.',
+    'Caminhe 20 minutos ao ar livre.',
+  ];
+  let rFilter = 'Todos';
+
   // ---------- state ----------
   function fresh() {
     return {
@@ -255,6 +310,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         'Quero recuperar meu tempo, minha energia e meu foco.',
       ],
       onboarded: false,
+      seen: {}, links: [], dailyDone: {},
     };
   }
   function load() {
@@ -468,8 +524,50 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <button class="btn danger block" id="wipe">Apagar todos os dados</button>`;
   }
 
+  function resCard(r, featured) {
+    const seen = S.seen[r.id];
+    return `<article class="res ${featured ? 'feature' : ''} ${seen && !featured ? 'seen' : ''}">
+      ${featured ? '<span class="eyebrow">Para hoje</span>' : `<span class="eyebrow">${esc(r.type)}</span>`}
+      <h3>${esc(r.title)}</h3>
+      <span class="who">${esc(r.who)}</span>
+      <p>${esc(r.desc)}</p>
+      <div class="acts">
+        <a class="link" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir no ${esc(r.site)}</a>
+        <button class="chip" data-seen="${r.id}" aria-pressed="${!!seen}">${seen ? 'Já vi' : 'Marcar como visto'}</button>
+      </div>
+    </article>`;
+  }
+  function viewIncentivo() {
+    const dayN = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / DAY);
+    const todayK = dayKey(new Date());
+    const task = DAILY[dayN % DAILY.length];
+    const done = !!S.dailyDone[todayK];
+    const feat = RESOURCES.filter(r => r.type === 'Pregações' || r.type === 'Vídeos')[dayN % 8];
+    const list = RESOURCES.filter(r => r.id !== feat.id && (rFilter === 'Todos' || r.type === rFilter));
+    const daysDone = Object.keys(S.dailyDone).length;
+    return `
+      <header class="top"><h1>Incentivo</h1></header>
+      <p class="muted">Encha a mente do que é bom. Um passo melhor a cada dia.</p>
+      <section class="card">
+        <div class="spread"><span class="eyebrow">Desafio de hoje</span><span class="tag">${daysDone} ${daysDone === 1 ? 'dia cumprido' : 'dias cumpridos'}</span></div>
+        <button class="daily" id="dailyBtn" aria-pressed="${done}"><span class="box"></span><span style="font-size:16px;font-weight:500">${esc(task)}</span></button>
+      </section>
+      ${resCard(feat, true)}
+      <div class="row" role="group" aria-label="Filtrar">${RTYPES.map(t => `<button class="chip" data-rf="${t}" aria-pressed="${rFilter === t}">${t}</button>`).join('')}</div>
+      <section class="list">${list.map(r => resCard(r)).join('') || '<p class="muted">Nada nesta categoria.</p>'}</section>
+      <section class="card">
+        <h3>Meus links</h3>
+        <p class="muted" style="font-size:14px">Salve aqui a pregação, vídeo ou podcast que te ajudou, para voltar nele na hora da luta.</p>
+        <div class="list">${S.links.map(l => `<div class="reason"><p><a href="${esc(l.url)}" target="_blank" rel="noopener" style="color:var(--gold)">${esc(l.title)}</a></p><button class="del" data-ldel="${esc(l.id)}">Remover</button></div>`).join('')}</div>
+        <input id="lTitle" placeholder="Nome (ex.: Pregação sobre José)">
+        <input id="lUrl" type="url" placeholder="Link (https://…)">
+        <button class="btn" id="lAdd">Salvar link</button>
+      </section>
+      <p class="muted" style="font-size:12px">Os botões abrem uma busca pelo pregador ou tema, então você sempre vê os conteúdos mais recentes.</p>`;
+  }
+
   // ---------- routing & render ----------
-  const VIEWS = { inicio: viewInicio, desafio: viewDesafio, diario: viewDiario, perfil: viewPerfil };
+  const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, diario: viewDiario, perfil: viewPerfil };
   let tab = 'inicio';
   function route() {
     const h = location.hash.replace('#', '');
@@ -639,6 +737,19 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       return confirmSheet('Apagar registro?', kind === 'relapse' ? 'Apagar esta recaída muda o seu contador e o desafio do mês.' : 'Esta entrada será removida.', 'Apagar', () => {
         S[list] = S[list].filter(x => x.id !== did); save(); render();
       });
+    }
+    if (id === 'dailyBtn') {
+      const k = dayKey(new Date());
+      if (S.dailyDone[k]) delete S.dailyDone[k]; else { S.dailyDone[k] = true; toast('Desafio cumprido. Continue assim!'); }
+      save(); return render();
+    }
+    if (t.dataset.rf) { rFilter = t.dataset.rf; return render(); }
+    if (t.dataset.seen) { const k = t.dataset.seen; if (S.seen[k]) delete S.seen[k]; else S.seen[k] = true; save(); return render(); }
+    if (t.dataset.ldel) { S.links = S.links.filter(l => l.id !== t.dataset.ldel); save(); return render(); }
+    if (id === 'lAdd') {
+      const title = $('#lTitle').value.trim(), url = $('#lUrl').value.trim();
+      if (!/^https?:\/\/\S+$/i.test(url)) return toast('Cole um link começando com https://');
+      S.links.push({ id: uid(), title: title || url, url }); save(); render(); return toast('Link salvo');
     }
     if (t.dataset.rdel) { S.reasons.splice(+t.dataset.rdel, 1); save(); return render(); }
     if (id === 'rAdd') { const v = $('#rNew').value.trim(); if (v) { S.reasons.push(v); save(); render(); } return; }
