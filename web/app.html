@@ -166,9 +166,24 @@ textarea { min-height: 96px; resize: vertical; }
 .reader .v.mk { background: var(--gold-soft); box-shadow: inset 0 -2px 0 var(--gold); }
 .reader .v.mk sup { color: var(--gold); }
 .navrow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
-.back { color: var(--muted); font-size: 14px; padding: 6px 0; }
+.back { color: var(--muted); font-size: 14px; padding: 6px 0; justify-self: start; text-align: left; }
 .mark-item { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 6px; text-align: left; width: 100%; }
 .mark-item .verse { font-size: 16px; }
+
+.plan-card { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 8px; }
+.plan-card h3 { font-size: 16px; }
+.plan-card .meta { font-size: 12px; color: var(--muted); }
+.reads { display: grid; gap: 6px; }
+.read-item { display: flex; gap: 10px; align-items: center; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; text-align: left; width: 100%; font-size: 15px; }
+.read-item .box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--line); flex: none; }
+.read-item.ok { color: var(--muted); }
+.read-item.ok .box { background: var(--ok); border-color: var(--ok); }
+.read-item span:last-child { margin-left: auto; color: var(--muted); font-size: 13px; }
+.day-row { display: grid; gap: 6px; }
+.day-row .spread b { font-size: 14px; }
+.devo .verse { font-size: 17px; }
+.devo h4 { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.devo .body { font-size: 16px; line-height: 1.65; }
 
 /* Tab bar */
 nav.tabs {
@@ -342,7 +357,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       ],
       onboarded: false,
       seen: {}, links: [], dailyDone: {},
-      bible: { read: {}, marks: {}, last: null },
+      bible: { read: {}, marks: {}, last: null, plan: null, devo: {} },
     };
   }
   function load() {
@@ -632,6 +647,10 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   const pctTxt = x => (x * 100 < 10 && x > 0 ? (x * 100).toFixed(1) : Math.floor(x * 100)).toString().replace('.', ',') + '%';
   function viewBiblia() {
     const bb = B();
+    if (bv.mode === 'plans') return viewPlans();
+    if (bv.mode === 'plan') return viewPlan();
+    if (bv.mode === 'devos') return viewDevos();
+    if (bv.mode === 'devo') return viewDevo();
     if (bv.mode === 'chapters') {
       const n = BMETA[bv.b].length;
       const last = bb.last;
@@ -667,7 +686,8 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         <header class="top"><h1>${BOOKS[b]} ${c}</h1></header>
         <p class="muted" style="font-size:13px">Toque num versículo para marcar.</p>
         ${body}
-        <button class="btn ${isRead ? 'ghost' : 'primary'} block" id="bibRead">${isRead ? 'Lido ✓ (toque para desmarcar)' : (hasNext ? 'Marcar como lido e ir ao próximo' : 'Marcar como lido')}</button>
+        ${bv.ctx ? `<button class="btn primary block" id="planRead">Concluir leitura do plano</button><button class="btn ghost block" data-bnav="plan">Voltar ao plano</button>` : ''}
+        <button class="btn ${isRead || bv.ctx ? 'ghost' : 'primary'} block" id="bibRead" ${bv.ctx ? 'hidden' : ''}>${isRead ? 'Lido ✓ (toque para desmarcar)' : (hasNext ? 'Marcar como lido e ir ao próximo' : 'Marcar como lido')}</button>
         <div class="row" style="justify-content:space-between">
           <button class="btn ghost" id="bibPrev" ${hasPrev ? '' : 'disabled style="opacity:.4"'}>← Anterior</button>
           <button class="btn ghost" id="bibNext" ${hasNext ? '' : 'disabled style="opacity:.4"'}>Próximo →</button>
@@ -693,6 +713,13 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         </div>
         <p class="muted" style="font-size:12px">O percentual conta os versículos dos capítulos marcados como lidos.</p>
       </section>
+      ${(() => {
+        const ps = planState();
+        if (!ps) return `<section class="card"><div class="spread"><h3>Plano de leitura</h3><span class="tag">${PLANS.length} planos</span></div><p class="muted" style="font-size:14px">Bíblia em 1 ano, cronológico, Novo Testamento em 90 dias e outros.</p><button class="btn primary" data-bnav="plans">Escolher um plano</button></section>`;
+        if (ps.next >= ps.days.length) return `<section class="card"><h3>${esc(ps.def.name)}</h3><p>Plano concluído! Glória a Deus.</p><button class="btn" data-bnav="plans">Escolher outro plano</button></section>`;
+        return `<section class="card"><div class="spread"><span class="eyebrow">Plano de hoje</span><span class="meta" style="font-size:12px;color:var(--muted)">${ps.doneDays}/${ps.days.length} dias</span></div><h3>${esc(ps.def.name)}</h3>${dayBlock(ps, ps.next, true)}<button class="btn ghost" data-bnav="plan">Ver plano completo</button></section>`;
+      })()}
+      ${(() => { const i = devoNext(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional · dia ${i + 1} de ${DEVOS.length}</span>${dd[i] ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
       <div class="row">
         <button class="btn primary" id="bibCont">${last ? 'Continuar: ' + BOOKS[last[0]] + ' ' + last[1] : 'Começar por João 1'}</button>
         <button class="btn" data-bnav="marks">Marcados (${nMarks})</button>
@@ -702,8 +729,179 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <h2>Novo Testamento</h2>
       <div class="books">${BOOKS.slice(39).map((_, i) => bookBtn(i + 39)).join('')}</div>`;
   }
-  function openChapter(b, c) {
-    bv = { mode: 'read', b, c }; B().last = [b, c]; save(); render(); window.scrollTo(0, 0);
+  function openChapter(b, c, ctx) {
+    bv = { mode: 'read', b, c, ctx: ctx || null }; B().last = [b, c]; save(); render(); window.scrollTo(0, 0);
+  }
+
+  // ---------- Planos de leitura ----------
+  const seg = (b, from, to) => { const out = []; const n = BMETA[b].length; for (let c = from || 1; c <= (to || n); c++) out.push([b, c]); return out; };
+  const books = (from, to) => { let o = []; for (let b = from; b <= to; b++) o = o.concat(seg(b)); return o; };
+  const vcount = ([b, c]) => BMETA[b][c - 1];
+  function chunk(list, days) {
+    const total = list.reduce((a, x) => a + vcount(x), 0);
+    const out = Array.from({ length: days }, () => []);
+    let acc = 0, d = 0;
+    list.forEach((x, i) => {
+      const left = list.length - i;
+      while (d < days - 1 && acc >= total * (d + 1) / days && out[d].length) d++;
+      if (days - d > left && out[d].length) d++;      // garante pelo menos 1 por dia
+      out[Math.min(d, days - 1)].push(x); acc += vcount(x);
+    });
+    return out;
+  }
+  const merge = (...tracks) => tracks[0].map((_, i) => tracks.reduce((a, t) => a.concat(t[i] || []), []));
+  const CHRONO = () => [
+    ...seg(0, 1, 11), ...seg(17), ...seg(0, 12, 50), ...books(1, 4), ...seg(18, 90, 90), ...books(5, 7), ...seg(8), ...seg(9), ...seg(12),
+    ...seg(18, 1, 89), ...seg(18, 91, 150), ...seg(10, 1, 11), ...seg(13, 1, 9), ...seg(19), ...seg(20), ...seg(21),
+    ...seg(10, 12, 22), ...seg(11, 1, 14), ...seg(31), ...seg(29), ...seg(27), ...seg(11, 15, 17), ...seg(22), ...seg(32), ...seg(11, 18, 25),
+    ...seg(13, 10, 36), ...seg(33), ...seg(35), ...seg(34), ...seg(28), ...seg(23), ...seg(24), ...seg(30), ...seg(25), ...seg(26),
+    ...seg(14, 1, 6), ...seg(36), ...seg(37), ...seg(16), ...seg(14, 7, 10), ...seg(15), ...seg(38),
+    ...books(39, 42), ...seg(43, 1, 14), ...seg(58), ...seg(47), ...seg(43, 15, 18), ...seg(51), ...seg(52), ...seg(43, 19, 20), ...seg(45), ...seg(46), ...seg(44),
+    ...seg(43, 21, 28), ...seg(48), ...seg(49), ...seg(50), ...seg(56), ...seg(53), ...seg(55), ...seg(59), ...seg(57), ...seg(54), ...seg(60), ...seg(64),
+    ...seg(61), ...seg(62), ...seg(63), ...seg(65),
+  ];
+  const PLANS = [
+    { id: 'ano', name: 'Bíblia em 1 ano', tag: 'O mais usado', days: 365, desc: 'Gênesis a Apocalipse em ordem, cerca de 3 a 4 capítulos por dia.', build: () => chunk(books(0, 65), 365) },
+    { id: 'mcheyne', name: 'Quatro leituras por dia (estilo M’Cheyne)', tag: 'Clássico', days: 365, desc: 'Inspirado no plano de Robert M’Cheyne: em um ano você lê o Antigo Testamento uma vez e o Novo Testamento e os Salmos duas vezes, com quatro leituras curtas por dia.', build: () => merge(
+        chunk([...books(0, 17)], 365), chunk([...books(19, 38)], 365), chunk([...books(39, 65), ...books(39, 65)], 365), chunk([...seg(18), ...seg(18)], 365)) },
+    { id: 'crono', name: 'Cronológico em 1 ano', tag: 'Popular', days: 365, desc: 'A Bíblia na ordem aproximada em que os fatos aconteceram, com profetas junto dos reis da sua época e cartas de Paulo dentro de Atos.', build: () => chunk(CHRONO(), 365) },
+    { id: 'b90', name: 'Bíblia em 90 dias', tag: 'Intenso', days: 90, desc: 'A Bíblia inteira em três meses, cerca de 13 capítulos (uns 45 minutos) por dia.', build: () => chunk(books(0, 65), 90) },
+    { id: 'nt90', name: 'Novo Testamento em 90 dias', tag: 'Para começar', days: 90, desc: 'Os 260 capítulos do Novo Testamento, cerca de 3 por dia.', build: () => chunk(books(39, 65), 90) },
+    { id: '5x5', name: 'Novo Testamento 5x5x5', tag: 'Leve', days: 260, desc: 'Um capítulo por dia, 5 dias por semana, uns 5 minutos. Os fins de semana ficam livres para pôr em dia.', build: () => books(39, 65).map(x => [x]) },
+    { id: 'evang', name: 'Evangelhos em 30 dias', tag: 'Conhecer Jesus', days: 30, desc: 'Mateus, Marcos, Lucas e João em um mês, cerca de 3 capítulos por dia.', build: () => chunk(books(39, 42), 30) },
+    { id: 'slpv', name: 'Salmos e Provérbios em 31 dias', tag: 'Sabedoria', days: 31, desc: 'Um capítulo de Provérbios e cerca de 5 Salmos por dia, por um mês.', build: () => merge(chunk(seg(18), 31), seg(19).map(x => [x])) },
+  ];
+  const planCache = {};
+  const planDays = id => planCache[id] || (planCache[id] = PLANS.find(p => p.id === id).build());
+  function fmtReads(list) {
+    const out = [];
+    list.forEach(([b, c]) => {
+      const l = out[out.length - 1];
+      if (l && l.b === b && l.to === c - 1) l.to = c; else out.push({ b, from: c, to: c });
+    });
+    return out.map(g => BOOKS[g.b] + ' ' + (g.from === g.to ? g.from : g.from + '–' + g.to)).join(', ');
+  }
+  function planState() {
+    const pl = B().plan; if (!pl) return null;
+    const days = planDays(pl.id), def = PLANS.find(p => p.id === pl.id);
+    const isDone = (d, i) => !!pl.done[d + ':' + i];
+    const dayDone = d => days[d].every((_, i) => isDone(d, i));
+    let next = days.findIndex((_, d) => !dayDone(d)); if (next < 0) next = days.length;
+    const doneDays = days.filter((_, d) => dayDone(d)).length;
+    const expected = Math.min(days.length, Math.floor((new Date(dayKey(new Date())) - new Date(dayKey(pl.start))) / DAY) + 1);
+    return { pl, def, days, isDone, dayDone, next, doneDays, expected };
+  }
+  function dayBlock(ps, d, open) {
+    const items = ps.days[d];
+    return `<div class="day-row">
+      <div class="spread"><b>Dia ${d + 1}</b><span class="meta">${ps.dayDone(d) ? '<span class="tag win">Concluído</span>' : esc(fmtReads(items))}</span></div>
+      ${open ? `<div class="reads">${items.map(([b, c], i) => `<button class="read-item ${ps.isDone(d, i) ? 'ok' : ''}" data-pr="${d}:${i}"><span class="box"></span><span>${BOOKS[b]} ${c}</span><span>${BMETA[b][c - 1]} vers.</span></button>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  function viewPlans() {
+    const cur = B().plan;
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>Planos de leitura</h1></header>
+      <p class="muted">Escolha um plano. Ao terminar um capítulo pelo plano, ele conta também no seu progresso da Bíblia.</p>
+      <div class="list">${PLANS.map(p => `
+        <article class="plan-card">
+          <div class="spread"><span class="eyebrow">${esc(p.tag)}</span><span class="meta">${p.days} dias</span></div>
+          <h3>${esc(p.name)}</h3>
+          <p class="muted" style="font-size:14px">${esc(p.desc)}</p>
+          ${cur && cur.id === p.id ? '<button class="btn" data-bnav="plan">Ver meu plano</button>' : `<button class="btn primary" data-pstart="${p.id}">Começar este plano</button>`}
+        </article>`).join('')}</div>`;
+  }
+  function viewPlan() {
+    const ps = planState();
+    if (!ps) return viewPlans();
+    const n = ps.days.length, ahead = ps.next - ps.expected, late = ps.expected - 1 - ps.next;
+    const status = ps.next >= n ? 'Plano concluído! Glória a Deus.'
+      : ahead > 0 ? `Adiantado ${ahead} ${ahead === 1 ? 'dia' : 'dias'}`
+      : ahead === 0 ? 'Você está em dia. A leitura de hoje já foi feita.'
+      : late > 0 ? `${late} ${late === 1 ? 'dia' : 'dias'} de atraso, sem culpa: continue de onde parou`
+      : 'Você está em dia. Falta só a leitura de hoje.';
+    const show = []; for (let d = ps.next; d < Math.min(n, ps.next + 7); d++) show.push(d);
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>${esc(ps.def.name)}</h1></header>
+      <section class="card">
+        <div class="spread"><span class="big-pct" style="font-size:34px">${ps.doneDays}<span class="muted" style="font-size:18px"> / ${n} dias</span></span></div>
+        <div class="bar"><i style="width:${(ps.doneDays / n * 100).toFixed(1)}%"></i></div>
+        <p class="muted" style="font-size:14px">${status}</p>
+      </section>
+      ${show.map((d, i) => `<section class="card">${dayBlock(ps, d, i === 0)}</section>`).join('')}
+      <div class="row"><button class="btn ghost" data-bnav="plans">Trocar de plano</button><button class="btn danger" id="planStop">Parar plano</button></div>`;
+  }
+
+  // ---------- Devocionais ----------
+  const DEVOS = [
+    ['Deus é fiel na hora da tentação', [45, 10, 13, 13], 'A tentação que você enfrenta não é sinal de que você é pior que os outros. Ela é humana. A diferença está no que Deus promete junto com ela: uma saída. Ela quase nunca é mágica; costuma ser simples, como levantar, sair do quarto, largar o celular. A saída existe, mas é você quem precisa passar por ela.', 'Senhor, abre meus olhos para ver a saída que o Senhor prepara e me dá coragem para usá-la logo.', 'Escreva no Diário qual é a sua “saída” mais rápida quando a tentação chega.'],
+    ['Livre para viver livre', [47, 5, 1, 1], 'Cristo não te libertou para você continuar visitando a prisão. A liberdade é um presente, mas permanecer nela é uma escolha diária. Cada dia limpo não é só um número: é você ficando firme no lugar onde Cristo te colocou.', 'Jesus, obrigado por me libertar. Me ajuda a não voltar para o que me prendia.', 'Olhe o seu contador hoje e agradeça a Deus por cada dia, em voz alta.'],
+    ['Fuja, não negocie', [0, 39, 7, 12], 'José não ficou discutindo com a tentação nem testando até onde aguentava. Ele largou a capa e correu. Às vezes a coisa mais espiritual que você pode fazer é fugir rápido, sem conversa. Perder a capa é melhor do que perder a integridade.', 'Pai, me dá a prontidão de José para fugir sem negociar.', 'Identifique uma situação em que você costuma “negociar” e decida hoje como vai fugir dela.'],
+    ['Um coração novo', [18, 51, 10, 12], 'Davi não pediu só para parar de errar; pediu um coração novo. A luta contra a luxúria não se vence apenas cortando hábitos, mas deixando Deus mudar o que você deseja. Ele cria o que você não consegue fabricar sozinho.', 'Cria em mim um coração puro, ó Deus. Muda os meus desejos, não só o meu comportamento.', 'Ore o Salmo 51 devagar antes de dormir.'],
+    ['Vigiar e orar', [39, 26, 41, 41], 'Jesus sabia que a carne é fraca, por isso deu duas armas: vigiar e orar. Vigiar é conhecer seus horários e lugares de risco. Orar é admitir que você precisa de ajuda antes da batalha, não só depois da queda.', 'Senhor, me ensina a vigiar meus momentos fracos e a orar antes que a tentação chegue.', 'Anote seus três horários de maior risco e o que fará em cada um.'],
+    ['Aliança com os olhos', [17, 31, 1, 1], 'Jó fez um acordo com os próprios olhos antes do problema aparecer. A decisão foi tomada com antecedência, com a cabeça fria. Quem decide na hora quase sempre perde. Decida hoje o que seus olhos não vão ver.', 'Deus, firmo contigo uma aliança: meus olhos são teus.', 'Defina uma regra clara para o celular e as redes (por exemplo: nada de rolar o feed na cama).'],
+    ['Nenhuma condenação', [44, 8, 1, 2], 'A culpa diz: “você nunca vai mudar”. O evangelho diz: “não há condenação para quem está em Cristo”. Isso não é licença para pecar; é o chão firme de onde você se levanta. Quem vive condenado volta para o vício para anestesiar a dor.', 'Jesus, obrigado porque a minha condenação caiu sobre ti. Me levanta com a tua graça.', 'Se a culpa te perseguir hoje, leia Romanos 8:1 em voz alta.'],
+    ['Mente renovada', [44, 12, 1, 2], 'Você se torna aquilo que alimenta. O mundo oferece um molde; Deus oferece uma transformação que começa na mente. Cada coisa boa que você coloca na cabeça é um tijolo do novo homem que Ele está construindo.', 'Senhor, renova a minha mente. Tira de mim o molde deste mundo.', 'Troque 20 minutos de tela hoje por uma pregação ou um capítulo da Bíblia.'],
+    ['Resistir e se aproximar', [58, 4, 7, 8], 'Tiago junta duas ordens: resistir ao diabo e chegar perto de Deus. Não basta só dizer não; é preciso dizer sim para Alguém melhor. Quando você se aproxima de Deus, Ele se aproxima de você.', 'Deus, eu me achego a ti agora. Me ajuda a resistir.', 'Quando bater a vontade hoje, ore em voz alta por um minuto antes de qualquer outra coisa.'],
+    ['Pense nisso', [49, 4, 8, 8], 'A batalha começa nos pensamentos. Paulo não manda só expulsar o pensamento ruim, mas encher a mente do que é verdadeiro, puro e amável. Mente vazia se enche sozinha; mente ocupada com o bem tem menos espaço para o mal.', 'Senhor, enche meus pensamentos do que é puro e verdadeiro.', 'Escolha um versículo hoje para repetir sempre que um pensamento impuro aparecer.'],
+    ['O seu corpo é templo', [45, 6, 18, 20], 'Você foi comprado por um preço alto. O seu corpo não é descartável nem só seu: é lugar onde Deus habita. Pureza não é só regra, é honrar Aquele que pagou por você com o próprio sangue.', 'Jesus, quero te honrar com meu corpo, porque ele é teu.', 'Faça hoje algo que cuide do seu corpo: um treino, uma caminhada ou dormir cedo.'],
+    ['Do desejo à morte', [58, 1, 14, 15], 'O pecado tem um caminho: desejo, atração, concepção, morte. Quanto mais cedo você corta, mais fácil. É muito mais fácil fechar a porta para o primeiro pensamento do que lutar no meio do caminho.', 'Senhor, me dá discernimento para cortar o mal no começo.', 'Pense na última queda e anote qual foi o primeiro passo. Esse é o ponto de corte.'],
+    ['Davi no terraço', [9, 11, 1, 4], 'Davi estava no lugar errado (em casa, quando devia estar na guerra), na hora errada e com tempo sobrando. O ócio abriu a porta. Muitas quedas começam em noites sem propósito. Ocupe seu tempo com o que importa.', 'Pai, me livra do ócio que me deixa vulnerável. Dá propósito aos meus dias.', 'Planeje hoje o que você vai fazer nas suas noites desta semana.'],
+    ['Confessar e ser limpo', [61, 1, 9, 9], 'Esconder alimenta o vício; confessar quebra o seu poder. Deus não perdoa porque você merece, mas porque Ele é fiel e justo, já que Jesus pagou. A confissão não é para Deus descobrir algo, é para você sair do escuro.', 'Pai, confesso meus pecados a ti. Obrigado por me perdoar e me limpar.', 'Faça hoje uma confissão sincera a Deus, sem pressa e sem desculpas.'],
+    ['Misericórdias novas', [24, 3, 22, 23], 'Se você caiu ontem, hoje há misericórdia nova. Ela não acaba e se renova a cada manhã. Não deixe a queda de ontem roubar a vitória de hoje. Levante, lave o rosto e comece de novo.', 'Senhor, grande é a tua fidelidade. Recebo tua misericórdia de hoje.', 'Comece o dia de amanhã agradecendo antes de pegar o celular.'],
+    ['Guardado pela Palavra', [18, 119, 9, 11], 'Como um jovem guarda puro o seu caminho? Guardando a Palavra no coração. Versículos memorizados são armas que você carrega para onde for, mesmo sem a Bíblia na mão.', 'Senhor, grava a tua Palavra no meu coração.', 'Memorize 1 Coríntios 10:13 esta semana.'],
+    ['Fugir e seguir', [54, 2, 22, 22], 'Paulo manda fugir das paixões e seguir a justiça, a fé, o amor e a paz, junto com outros que buscam a Deus. Você não foge para o nada; foge para algo melhor e na companhia de outros.', 'Deus, coloca ao meu lado pessoas que te buscam de coração puro.', 'Procure hoje um irmão de confiança para caminhar com você.'],
+    ['Ele entende você', [57, 4, 15, 16], 'Jesus foi tentado em tudo e não pecou. Ele entende o peso da sua luta. Por isso você pode chegar com confiança ao trono da graça, não com medo. Ali há socorro na hora certa: na hora da tentação.', 'Jesus, tu me entendes. Preciso do teu socorro agora.', 'Na próxima tentação, abra o botão de pânico e ore Hebreus 4:16.'],
+    ['Andar no Espírito', [47, 5, 16, 17], 'Existe uma guerra dentro de você: a carne contra o Espírito. A promessa é que, andando no Espírito, você não satisfaz os desejos da carne. A vitória vem de andar perto, todo dia, e não de força de vontade num momento.', 'Espírito Santo, quero andar contigo hoje, passo a passo.', 'Faça três pausas curtas hoje para orar, uma de manhã, uma à tarde e uma à noite.'],
+    ['Melhor dois do que um', [20, 4, 9, 10], 'Quem cai sozinho fica no chão. Quem tem alguém, é levantado. O vício ama o isolamento. Ter uma pessoa a quem prestar contas é uma das armas mais fortes que existem.', 'Senhor, me dá humildade para pedir ajuda.', 'Mande hoje uma mensagem para alguém de confiança contando como você está.'],
+    ['Guarda o coração', [19, 4, 23, 23], 'Tudo o que você vive flui do coração. Por isso ele precisa de guarda, de portão e de vigia. O que entra pelos olhos e ouvidos chega ao coração. Escolha bem o que deixa entrar.', 'Senhor, ajuda-me a guardar meu coração acima de tudo.', 'Deixe de seguir hoje perfis ou canais que te puxam para baixo.'],
+    ['Cortar o que faz tropeçar', [39, 5, 27, 30], 'Jesus usa uma linguagem forte: se algo te faz tropeçar, corte. Ele não fala de mutilação, mas de medidas radicais. Às vezes é apagar um app, bloquear um site ou mudar o celular de lugar. Vale a pena.', 'Jesus, me dá coragem para cortar o que me faz cair.', 'Faça hoje um corte prático: apague, bloqueie ou instale um filtro.'],
+    ['Nova criatura', [46, 5, 17, 17], 'Em Cristo você não é só uma versão melhorada do antigo. Você é nova criação. O vício não define quem você é. Sua identidade é de filho, e filhos aprendem a viver como o Pai.', 'Pai, obrigado porque em Cristo eu sou nova criatura.', 'Escreva no Diário uma frase sobre quem você é em Cristo.'],
+    ['A graça que ensina', [55, 2, 11, 12], 'A graça não só perdoa; ela ensina a dizer não à impiedade e às paixões. Quanto mais você entende o amor de Deus, mais forte fica o seu “não” ao pecado.', 'Senhor, que a tua graça me ensine a dizer não.', 'Quando vier a tentação, diga em voz alta: “não, eu pertenço a Cristo”.'],
+    ['Força para os cansados', [22, 40, 29, 31], 'Você pode estar cansado de lutar. Deus dá força a quem não tem nenhuma. Esperar no Senhor não é ficar parado: é depender dEle enquanto continua andando.', 'Senhor, estou cansado. Renova as minhas forças.', 'Descanse bem hoje: durma cedo e longe do celular.'],
+    ['Limpos de coração', [39, 5, 8, 8], 'A recompensa da pureza não é só evitar consequências. É ver a Deus. Um coração limpo enxerga melhor a beleza de Deus, a sua família e a vida. A pureza abre os olhos.', 'Deus, quero te ver. Purifica meu coração.', 'Agradeça hoje por uma coisa bonita que você passou a perceber nesta jornada.'],
+    ['Despir e vestir', [48, 4, 22, 24], 'Mudar não é só tirar o velho; é vestir o novo. Se você só tira hábitos ruins e não coloca nada no lugar, o vazio volta a ser ocupado. Troque o hábito velho por um hábito novo e bom.', 'Senhor, me ajuda a vestir o novo homem que criaste.', 'Escolha um hábito bom para colocar no lugar do antigo (treino, leitura, oração).'],
+    ['Ele vai terminar a obra', [49, 1, 6, 6], 'Deus começou algo em você e Ele mesmo vai completar. Sua santificação não depende só da sua força. Nos dias fracos, descanse nessa promessa: Ele não desiste de você.', 'Pai, obrigado porque não desistes de mim. Completa a tua obra.', 'Releia seus motivos no Perfil e agradeça pelo caminho até aqui.'],
+    ['Ainda que eu caia', [32, 7, 8, 8], 'Cair não é o fim da história. O profeta diz: “ainda que eu tenha caído, me levantarei”. O inimigo quer que você fique no chão. Deus quer que você se levante agora, não amanhã.', 'Senhor, mesmo quando eu cair, me levanta e sê a minha luz.', 'Se você caiu recentemente, registre com sinceridade e recomece hoje.'],
+    ['Corra com perseverança', [57, 12, 1, 2], 'A vida cristã é uma corrida longa. Tire o peso, livre-se do pecado que embaraça e olhe para Jesus. Ele já correu antes de você e está te esperando na linha de chegada.', 'Jesus, ponho os olhos em ti. Me dá perseverança para continuar correndo.', 'Escolha o seu próximo passo: um novo plano de leitura ou mais 30 dias de desafio.'],
+  ];
+  function verseText(b, c, v1, v2) {
+    if (!BIBLE) return null;
+    return BIBLE[b][c - 1].slice(v1 - 1, v2).join(' ').replace(/^[A-ZÁÉ][a-záéíóúçã]{1,8}:(?=\S)/, '');
+  }
+  const refTxt = ([b, c, v1, v2]) => BOOKS[b] + ' ' + c + ':' + v1 + (v2 > v1 ? '–' + v2 : '');
+  const devoNext = () => { const d = B().devo || {}; const i = DEVOS.findIndex((_, k) => !d[k]); return i < 0 ? DEVOS.length - 1 : i; };
+  function viewDevo() {
+    const i = bv.devo ?? devoNext(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
+    const txt = verseText(b, c, v1, v2); if (!txt) loadBible();
+    const done = !!(B().devo || {})[i];
+    return `
+      <button class="back" data-bnav="devos">← Devocionais</button>
+      <span class="eyebrow">Dia ${i + 1} de ${DEVOS.length}</span>
+      <header class="top"><h1>${esc(dv[0])}</h1></header>
+      <article class="card devo">
+        <p class="verse">${txt ? '“' + esc(txt) + '”' : (bibleErr ? 'Não consegui carregar o versículo.' : 'Carregando o versículo…')}</p>
+        <span class="ref">${refTxt(dv[1])}</span>
+      </article>
+      <article class="card devo"><h4>Reflexão</h4><p class="body">${esc(dv[2])}</p></article>
+      <article class="card devo"><h4>Oração</h4><p class="body" style="font-family:var(--font-verse);font-style:italic">${esc(dv[3])}</p></article>
+      <article class="card devo"><h4>Para hoje</h4><p class="body">${esc(dv[4])}</p></article>
+      <div class="row">
+        <button class="btn ${done ? 'ghost' : 'primary'}" id="devoDone">${done ? 'Concluído ✓' : 'Concluir devocional'}</button>
+        <button class="btn" data-bopen="${b}:${c}">Ler ${BOOKS[b]} ${c} inteiro</button>
+      </div>`;
+  }
+  function viewDevos() {
+    const d = B().devo || {}, nd = Object.keys(d).length;
+    return `
+      <button class="back" data-bnav="books">← Bíblia</button>
+      <header class="top"><h1>Devocionais</h1></header>
+      <p class="muted">30 dias de liberdade: uma passagem, uma reflexão, uma oração e um passo prático por dia.</p>
+      <div class="bar"><i style="width:${(nd / DEVOS.length * 100).toFixed(1)}%"></i></div>
+      <p class="muted" style="font-size:13px">${nd} de ${DEVOS.length} concluídos</p>
+      <div class="list">${DEVOS.map((dv, i) => `<button class="read-item ${d[i] ? 'ok' : ''}" data-devo="${i}"><span class="box"></span><span style="color:var(--fg)">${i + 1}. ${esc(dv[0])}</span><span>${refTxt(dv[1])}</span></button>`).join('')}</div>`;
   }
   function stepChapter(dir) {
     let b = bv.b, c = bv.c + dir;
@@ -892,6 +1090,32 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     if (id === 'bibPrev') return stepChapter(-1);
     if (id === 'bibNext') return stepChapter(1);
     if (id === 'bibRetry') { loadBible(); return render(); }
+    if (t.dataset.pstart) {
+      const go = () => { B().plan = { id: t.dataset.pstart, start: new Date().toISOString(), done: {} }; bv = { mode: 'plan' }; save(); render(); window.scrollTo(0, 0); toast('Plano iniciado'); };
+      return B().plan ? confirmSheet('Trocar de plano?', 'O progresso do plano atual será perdido. Os capítulos lidos continuam contando na Bíblia.', 'Trocar', go) : go();
+    }
+    if (id === 'planStop') return confirmSheet('Parar o plano?', 'O progresso deste plano será apagado. Os capítulos lidos continuam contando na Bíblia.', 'Parar plano', () => { B().plan = null; bv = { mode: 'books' }; save(); render(); });
+    if (t.dataset.pr) {
+      const [d, i] = t.dataset.pr.split(':').map(Number), ps = planState();
+      const [b, c] = ps.days[d][i];
+      return openChapter(b, c, { d, i });
+    }
+    if (id === 'planRead') {
+      const ps = planState(), { d, i } = bv.ctx;
+      ps.pl.done[d + ':' + i] = new Date().toISOString();
+      B().read[bv.b + ':' + bv.c] = B().read[bv.b + ':' + bv.c] || new Date().toISOString();
+      save();
+      const ni = ps.days[d].findIndex((_, k) => !ps.isDone(d, k));
+      if (ni >= 0) { const [b, c] = ps.days[d][ni]; return openChapter(b, c, { d, i: ni }); }
+      toast('Dia ' + (d + 1) + ' concluído!'); bv = { mode: 'plan' }; render(); return window.scrollTo(0, 0);
+    }
+    if (t.dataset.devo) { bv = { mode: 'devo', devo: +t.dataset.devo }; render(); return window.scrollTo(0, 0); }
+    if (id === 'devoDone') {
+      const dd = B().devo || (B().devo = {}), i = bv.devo ?? devoNext();
+      if (dd[i]) delete dd[i]; else { dd[i] = new Date().toISOString(); toast('Devocional concluído'); }
+      save(); return render();
+    }
+    if (t.dataset.bopen) { const [b, c] = t.dataset.bopen.split(':').map(Number); return openChapter(b, c); }
     if (id === 'bibRead') {
       const k = bv.b + ':' + bv.c, rd = B().read;
       if (rd[k]) { delete rd[k]; save(); return render(); }
