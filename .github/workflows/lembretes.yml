@@ -1,0 +1,32 @@
+# Lembretes do Firme no iPhone (horário de Brasília):
+# 7h devocional do dia · 21h "fique firme" · 23h "largue o celular".
+# Precisa dos segredos VAPID_PRIVATE_KEY e PUSH_SUBSCRIPTION (Settings → Secrets and variables → Actions).
+name: Lembretes do Firme
+
+on:
+  schedule:
+    - cron: '7 10 * * *'   # 07:07 em Brasília
+    - cron: '3 0 * * *'    # 21:03 em Brasília
+    - cron: '3 2 * * *'    # 23:03 em Brasília
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Qual lembrete enviar agora'
+        type: choice
+        options: [manha, noite, dormir]
+        default: manha
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --prefix scripts web-push@3.6.7
+      - run: node scripts/push.js
+        env:
+          SLOT: ${{ github.event.inputs.slot }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
