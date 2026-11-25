@@ -686,22 +686,24 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       </section>
       <section class="card">
         <div class="spread"><h2>Bíblia em ${monthName}</h2><a href="#biblia" class="chip" style="text-decoration:none;color:var(--fg)">Ler agora</a></div>
+        ${bib.readToday ? `<p style="font-size:14px"><span class="tag win">Hoje ✓</span> Você já leu a Bíblia hoje.</p>`
+          : `<div class="banner"><b>${bib.streak > 0 ? `Leia um capítulo hoje para manter ${bib.streak} ${bib.streak === 1 ? 'dia' : 'dias'} seguidos.` : 'Comece hoje uma sequência de leitura.'}</b><span class="muted" style="font-size:13px">O devocional não conta aqui: só a leitura de um capítulo da Bíblia.</span><button class="btn primary" id="bibCont">${B().last ? 'Continuar: ' + BOOKS[B().last[0]] + ' ' + B().last[1] : 'Ler João 1'}</button></div>`}
         <div class="stats">
-          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos com a Palavra</span></div>
-          <div class="stat"><b>${bib.devoStreak}</b><span>Devocionais seguidos</span></div>
-          <div class="stat"><b>${bib.days}</b><span>Dias com a Palavra no mês</span></div>
-          <div class="stat"><b>${bib.devos}</b><span>Devocionais no mês</span></div>
+          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos lendo a Bíblia</span></div>
+          <div class="stat"><b>${bib.days}</b><span>Dias com leitura no mês</span></div>
           <div class="stat"><b>${bib.chapters}</b><span>Capítulos no mês</span></div>
-          <div class="stat"><b>${Object.keys(B().devoLog).length}</b><span>Devocionais no total</span></div>
+          <div class="stat"><b>${pctTxt(bibleStats().pct)}</b><span>Da Bíblia lida</span></div>
         </div>
-        <p class="muted" style="font-size:12px">“Com a Palavra” conta os dias em que você leu um capítulo ou fez o devocional.</p>
         <span class="eyebrow">Capítulos lidos por dia</span>
         ${bibleChart(bib, daysIn, now.getDate())}
         <p class="chart-tip" id="chartTip">Toque numa barra para ver o dia.</p>
-        <p class="muted" style="font-size:12px">O ponto dourado embaixo marca os dias com devocional.</p>
       </section>
       <section class="card">
         <div class="spread"><h2>Devocionais de ${monthName}</h2><span class="tag">${bib.devos} ${bib.devos === 1 ? 'feito' : 'feitos'}</span></div>
+        <div class="stats">
+          <div class="stat"><b>${bib.devoStreak}</b><span>Devocionais seguidos</span></div>
+          <div class="stat"><b>${Object.keys(B().devoLog).length}</b><span>Devocionais no total</span></div>
+        </div>
         ${(() => {
           const ti = devoToday(), todayDone = devoDoneOn(ti, dayKey(now));
           const head = todayDone ? '' : `<button class="devo-row" data-devo="${ti}"><small>Hoje</small><span>${esc(DEVOS[ti][0])}</span><span class="tag" style="flex:none">Fazer agora</span></button>`;
@@ -718,12 +720,12 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     Object.entries(bb.devoLog).forEach(([k, i]) => { const [yy, mm, dd] = k.split('-').map(Number); if (yy === y && mm - 1 === m) { dv[dd] = true; devoList.push({ day: dd, i }); } });
     devoList.sort((a, b) => b.day - a.day);
     const devoDays = new Set(Object.keys(bb.devoLog));
-    const allDays = new Set([...Object.values(bb.read).map(dayKey), ...devoDays]);
-    let days = 0; for (let d = 1; d <= daysIn; d++) if (per[d] || dv[d]) days++;
-    return { per, dv, days, streak: streakOf(allDays), devoStreak: streakOf(devoDays), devoList, chapters: per.reduce((a, b) => a + b, 0), devos: devoList.length };
+    const readDays = new Set(Object.values(bb.read).map(dayKey));
+    let days = 0; for (let d = 1; d <= daysIn; d++) if (per[d]) days++;
+    return { per, dv, days, streak: streakOf(readDays), readToday: readDays.has(dayKey(new Date())), devoStreak: streakOf(devoDays), devoList, chapters: per.reduce((a, b) => a + b, 0), devos: devoList.length };
   }
   function bibleChart(bib, daysIn, today) {
-    const W = 340, H = 146, L = 22, R = 4, T = 10, Bm = 28, ph = H - T - Bm;
+    const W = 340, H = 140, L = 22, R = 4, T = 10, Bm = 22, ph = H - T - Bm;
     const step = (W - L - R) / daysIn, bw = Math.max(3, step - 2);
     const mx = Math.max(4, ...bib.per);
     const top = Math.ceil(mx / 2) * 2, yv = v => T + ph - v / top * ph;
@@ -738,7 +740,6 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         const h = Math.max(4, v / top * ph), y0 = T + ph, r = Math.min(4, bw / 2);
         g += `<path class="bar-m ${d === today ? 'today' : ''}" d="M${x} ${y0}V${y0 - h + r}q0 -${r} ${r} -${r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${y0}z"/>`;
       }
-      if (bib.dv[d]) g += `<circle class="devo-dot" cx="${x + bw / 2}" cy="${T + ph + 5}" r="2.5"/>`;
     }
     return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Capítulos lidos por dia neste mês: ${bib.chapters} no total">${g}</svg>`;
   }
@@ -747,7 +748,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const bib = bibleMonth(now.getFullYear(), now.getMonth(), daysIn), n = bib.per[d];
     const label = new Date(now.getFullYear(), now.getMonth(), d).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
     const tip = $('#chartTip'); if (!tip) return;
-    tip.innerHTML = `<b>${label}</b> · ${n} ${n === 1 ? 'capítulo' : 'capítulos'}${bib.dv[d] ? ' · devocional feito' : ''}`;
+    tip.innerHTML = `<b>${label}</b> · ${n} ${n === 1 ? 'capítulo lido' : 'capítulos lidos'}`;
     document.querySelectorAll('.chart .sel').forEach(e => e.classList.remove('sel'));
     const h = document.querySelector(`.chart .hit[data-bar="${d}"]`); if (h && h.nextElementSibling && h.nextElementSibling.classList.contains('bar-m')) h.nextElementSibling.classList.add('sel');
   }
@@ -1000,7 +1001,9 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <div class="books">${BOOKS.slice(39).map((_, i) => bookBtn(i + 39)).join('')}</div>`;
   }
   function openChapter(b, c, ctx) {
-    bv = { mode: 'read', b, c, ctx: ctx || null }; B().last = [b, c]; save(); render(); window.scrollTo(0, 0);
+    bv = { mode: 'read', b, c, ctx: ctx || null }; B().last = [b, c]; save();
+    if (tab !== 'biblia') { tab = 'biblia'; skipRoute = true; location.hash = '#biblia'; }
+    render(); window.scrollTo(0, 0);
   }
 
   // ---------- Planos de leitura ----------
@@ -1180,6 +1183,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const i = bv.devo ?? devoToday(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
     const txt = verseText(b, c, v1, v2); if (!txt && !bibleErr) loadBible();
     const done = i === devoToday() ? devoDoneOn(i, dayKey(new Date())) : !!(B().devo || {})[i];
+    const readToday = Object.values(B().read).some(iso => dayKey(iso) === dayKey(new Date()));
     return `
       <button class="back" data-bnav="devos">← Devocionais</button>
       <span class="eyebrow">${i === devoToday() ? 'Devocional de hoje · ' : ''}${i + 1} de ${DEVOS.length}</span>
@@ -1194,8 +1198,9 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <article class="card devo"><h4>Para hoje</h4><p class="body">${esc(dv[4])}</p></article>
       <div class="row">
         <button class="btn ${done ? 'ghost' : 'primary'}" id="devoDone">${done ? 'Concluído ✓' : 'Concluir devocional'}</button>
-        <button class="btn" data-bopen="${b}:${c}">Ler ${BOOKS[b]} ${c} inteiro</button>
-      </div>`;
+        <button class="btn ${done && !readToday ? 'primary' : ''}" data-bopen="${b}:${c}">Ler ${BOOKS[b]} ${c} inteiro</button>
+      </div>
+      ${done && !readToday ? '<p class="muted" style="font-size:13px">Devocional feito. Para manter sua sequência de leitura, leia hoje pelo menos um capítulo da Bíblia.</p>' : ''}`;
   }
   function viewDevos() {
     const d = B().devo || {}, nd = Object.keys(d).length;
@@ -1430,7 +1435,8 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       } else {
         lg[k] = i; dd[i] = new Date().toISOString();
         const st = streakOf(new Set(Object.keys(lg)));
-        toast('Devocional concluído' + (st > 1 ? ` · ${st} dias seguidos` : ''));
+        const readToday = Object.values(bb.read).some(iso => dayKey(iso) === k);
+        toast('Devocional concluído' + (st > 1 ? ` · ${st} seguidos` : '') + (readToday ? '' : '. Agora leia um capítulo!'));
       }
       save(); return render();
     }
