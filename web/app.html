@@ -186,13 +186,20 @@ textarea { min-height: 96px; resize: vertical; }
 .devo .body { font-size: 16px; line-height: 1.65; }
 
 .cal .d { position: relative; }
-.cal .d.bib::after { content: ""; position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--fg); }
+.cal .d.bib::after, .cal .d.dv::before { content: ""; position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; }
+.cal .d.bib::after { background: var(--fg); }
+.cal .d.dv::before { background: var(--gold); box-shadow: 0 0 0 1px var(--bg); }
+.cal .d.bib.dv::after { margin-left: -6.5px; }
+.cal .d.bib.dv::before { margin-left: 1.5px; }
+.devo-row { display: flex; gap: 10px; align-items: baseline; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; text-align: left; width: 100%; }
+.devo-row small { color: var(--muted); font-variant-numeric: tabular-nums; flex: none; width: 44px; }
+.devo-row span { flex: 1; min-width: 0; }
 .chart { width: 100%; height: auto; display: block; overflow: visible; }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
 .chart .axis { fill: var(--muted); font-size: 9px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
 .chart .bar-m { fill: var(--gold); pointer-events: none; }
 .chart .bar-m.today { fill: var(--fg); }
-.chart .devo-dot { fill: var(--muted); pointer-events: none; }
+.chart .devo-dot { fill: var(--gold); pointer-events: none; }
 .chart .hit { fill: transparent; cursor: pointer; }
 .chart .hit:hover + .bar-m, .chart .sel { opacity: .75; }
 .chart-tip { font-size: 13px; color: var(--muted); min-height: 20px; font-variant-numeric: tabular-nums; }
@@ -626,7 +633,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     const daysIn = new Date(y, m + 1, 0).getDate();
     const monthName = now.toLocaleString('pt-BR', { month: 'long' });
     const relDays = new Set(S.relapses.map(r => dayKey(r.at)));
-    const bibDays = new Set([...Object.values(B().read), ...Object.values(B().devo || {})].map(dayKey));
+    const bibDays = new Set(Object.values(B().read).map(dayKey)), dvDays = new Set(Object.keys(B().devoLog));
     const todayK = dayKey(now), startK = dayKey(S.firstStart);
     let clean = 0, fails = 0;
     const cells = [];
@@ -640,7 +647,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       else if (relDays.has(k)) { cls = 'fail'; fails++; }
       else if (k === todayK) cls = 'today';
       else { cls = 'clean'; clean++; }
-      cells.push(`<span class="d ${cls} ${bibDays.has(k) ? 'bib' : ''}">${d}</span>`);
+      cells.push(`<span class="d ${cls} ${bibDays.has(k) ? 'bib' : ''} ${dvDays.has(k) ? 'dv' : ''}">${d}</span>`);
     }
     const groups = [];
     for (let left = clean; left > 0; left -= 5) groups.push(tallySvg(Math.min(5, left)));
@@ -655,7 +662,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       </section>
       <section class="card">
         <div class="cal">${['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(x => `<span class="dow">${x}</span>`).join('')}${cells.join('')}</div>
-        <div class="legend"><span><i style="background:var(--gold)"></i>Limpo</span><span><i style="background:var(--danger)"></i>Recaída</span><span><i style="border:2px solid var(--gold)"></i>Hoje</span><span><i style="background:var(--fg);border-radius:50%;width:6px;height:6px;vertical-align:1px"></i>Leu a Bíblia</span></div>
+        <div class="legend"><span><i style="background:var(--gold)"></i>Limpo</span><span><i style="background:var(--danger)"></i>Recaída</span><span><i style="border:2px solid var(--gold)"></i>Hoje</span><span><i style="background:var(--fg);border-radius:50%;width:6px;height:6px;vertical-align:1px"></i>Leu a Bíblia</span><span><i style="background:var(--gold);border-radius:50%;width:6px;height:6px;vertical-align:1px"></i>Devocional</span></div>
       </section>
       <section class="stats">
         <div class="stat"><b>${clean}</b><span>Dias limpos no mês</span></div>
@@ -664,31 +671,43 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       <section class="card">
         <div class="spread"><h2>Bíblia em ${monthName}</h2><a href="#biblia" class="chip" style="text-decoration:none;color:var(--fg)">Ler agora</a></div>
         <div class="stats">
-          <div class="stat"><b>${bib.days}</b><span>Dias com leitura no mês</span></div>
-          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos lendo</span></div>
-          <div class="stat"><b>${bib.chapters}</b><span>Capítulos no mês</span></div>
+          <div class="stat"><b>${bib.streak}</b><span>Dias seguidos com a Palavra</span></div>
+          <div class="stat"><b>${bib.devoStreak}</b><span>Devocionais seguidos</span></div>
+          <div class="stat"><b>${bib.days}</b><span>Dias com a Palavra no mês</span></div>
           <div class="stat"><b>${bib.devos}</b><span>Devocionais no mês</span></div>
+          <div class="stat"><b>${bib.chapters}</b><span>Capítulos no mês</span></div>
+          <div class="stat"><b>${Object.keys(B().devoLog).length}</b><span>Devocionais no total</span></div>
         </div>
+        <p class="muted" style="font-size:12px">“Com a Palavra” conta os dias em que você leu um capítulo ou fez o devocional.</p>
         <span class="eyebrow">Capítulos lidos por dia</span>
         ${bibleChart(bib, daysIn, now.getDate())}
         <p class="chart-tip" id="chartTip">Toque numa barra para ver o dia.</p>
-        <p class="muted" style="font-size:12px">O ponto embaixo marca os dias em que você fez só o devocional.</p>
+        <p class="muted" style="font-size:12px">O ponto dourado embaixo marca os dias com devocional.</p>
+      </section>
+      <section class="card">
+        <div class="spread"><h2>Devocionais de ${monthName}</h2><span class="tag">${bib.devos} ${bib.devos === 1 ? 'feito' : 'feitos'}</span></div>
+        ${(() => {
+          const ti = devoToday(), todayDone = devoDoneOn(ti, dayKey(now));
+          const head = todayDone ? '' : `<button class="devo-row" data-devo="${ti}"><small>Hoje</small><span>${esc(DEVOS[ti][0])}</span><span class="tag" style="flex:none">Fazer agora</span></button>`;
+          const rows = bib.devoList.map(r => `<button class="devo-row" data-devo="${r.i}"><small>${r.day}/${String(m + 1).padStart(2, '0')}</small><span>${esc(DEVOS[r.i][0])}</span><span class="tag win" style="flex:none">✓</span></button>`).join('');
+          return `<div class="list">${head}${rows || (head ? '' : '')}</div>${rows ? '' : '<p class="muted" style="font-size:14px">Nenhum devocional concluído este mês ainda.</p>'}`;
+        })()}
       </section>`;
   }
   function bibleMonth(y, m, daysIn) {
     const bb = B(), per = Array(daysIn + 1).fill(0), dv = Array(daysIn + 1).fill(false);
     const inMonth = iso => { const d = new Date(iso); return d.getFullYear() === y && d.getMonth() === m ? d.getDate() : 0; };
     Object.values(bb.read).forEach(iso => { const d = inMonth(iso); if (d) per[d]++; });
-    Object.values(bb.devo || {}).forEach(iso => { const d = inMonth(iso); if (d) dv[d] = true; });
-    const allDays = new Set([...Object.values(bb.read), ...Object.values(bb.devo || {})].map(dayKey));
-    let streak = 0; const t = new Date(); t.setHours(12, 0, 0, 0);
-    if (!allDays.has(dayKey(t))) t.setDate(t.getDate() - 1);
-    while (allDays.has(dayKey(t))) { streak++; t.setDate(t.getDate() - 1); }
+    const devoList = [];
+    Object.entries(bb.devoLog).forEach(([k, i]) => { const [yy, mm, dd] = k.split('-').map(Number); if (yy === y && mm - 1 === m) { dv[dd] = true; devoList.push({ day: dd, i }); } });
+    devoList.sort((a, b) => b.day - a.day);
+    const devoDays = new Set(Object.keys(bb.devoLog));
+    const allDays = new Set([...Object.values(bb.read).map(dayKey), ...devoDays]);
     let days = 0; for (let d = 1; d <= daysIn; d++) if (per[d] || dv[d]) days++;
-    return { per, dv, days, streak, chapters: per.reduce((a, b) => a + b, 0), devos: dv.filter(Boolean).length };
+    return { per, dv, days, streak: streakOf(allDays), devoStreak: streakOf(devoDays), devoList, chapters: per.reduce((a, b) => a + b, 0), devos: devoList.length };
   }
   function bibleChart(bib, daysIn, today) {
-    const W = 340, H = 140, L = 22, R = 4, T = 10, Bm = 22, ph = H - T - Bm;
+    const W = 340, H = 146, L = 22, R = 4, T = 10, Bm = 28, ph = H - T - Bm;
     const step = (W - L - R) / daysIn, bw = Math.max(3, step - 2);
     const mx = Math.max(4, ...bib.per);
     const top = Math.ceil(mx / 2) * 2, yv = v => T + ph - v / top * ph;
@@ -702,7 +721,8 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       if (v) {
         const h = Math.max(4, v / top * ph), y0 = T + ph, r = Math.min(4, bw / 2);
         g += `<path class="bar-m ${d === today ? 'today' : ''}" d="M${x} ${y0}V${y0 - h + r}q0 -${r} ${r} -${r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${y0}z"/>`;
-      } else if (bib.dv[d]) g += `<circle class="devo-dot" cx="${x + bw / 2}" cy="${T + ph - 3}" r="2.5"/>`;
+      }
+      if (bib.dv[d]) g += `<circle class="devo-dot" cx="${x + bw / 2}" cy="${T + ph + 5}" r="2.5"/>`;
     }
     return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Capítulos lidos por dia neste mês: ${bib.chapters} no total">${g}</svg>`;
   }
@@ -842,7 +862,22 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   const CTOTAL = BMETA.reduce((a, b) => a + b.length, 0);
   let BIBLE = null, bibleErr = false, bibleLoading = false;
   let bv = { mode: 'books', b: 0, c: 1 };
-  function B() { if (!S.bible) S.bible = { read: {}, marks: {}, last: null }; return S.bible; }
+  function B() {
+    if (!S.bible) S.bible = { read: {}, marks: {}, last: null };
+    const bb = S.bible;
+    if (!bb.devoLog) { // registro por data: { 'AAAA-MM-DD': nº do devocional }
+      bb.devoLog = {};
+      Object.entries(bb.devo || {}).forEach(([i, iso]) => { const k = dayKey(iso); if (!(k in bb.devoLog)) bb.devoLog[k] = +i; });
+    }
+    return bb;
+  }
+  function streakOf(days) {
+    let n = 0; const t = new Date(); t.setHours(12, 0, 0, 0);
+    if (!days.has(dayKey(t))) t.setDate(t.getDate() - 1);
+    while (days.has(dayKey(t))) { n++; t.setDate(t.getDate() - 1); }
+    return n;
+  }
+  const devoDoneOn = (i, k) => B().devoLog[k] === i;
   function loadBible() {
     if (BIBLE || bibleLoading) return;
     bibleLoading = true; bibleErr = false;
@@ -938,7 +973,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         if (ps.next >= ps.days.length) return `<section class="card"><h3>${esc(ps.def.name)}</h3><p>Plano concluído! Glória a Deus.</p><button class="btn" data-bnav="plans">Escolher outro plano</button></section>`;
         return `<section class="card"><div class="spread"><span class="eyebrow">Plano de hoje</span><span class="meta" style="font-size:12px;color:var(--muted)">${ps.doneDays}/${ps.days.length} dias</span></div><h3>${esc(ps.def.name)}</h3>${dayBlock(ps, ps.next, true)}<button class="btn ghost" data-bnav="plan">Ver plano completo</button></section>`;
       })()}
-      ${(() => { const i = devoToday(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional de hoje · ${new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>${dd[i] ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
+      ${(() => { const i = devoToday(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional de hoje · ${new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>${devoDoneOn(i, dayKey(new Date())) ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
       <div class="row">
         <button class="btn primary" id="bibCont">${last ? 'Continuar: ' + BOOKS[last[0]] + ' ' + last[1] : 'Começar por João 1'}</button>
         <button class="btn" data-bnav="marks">Marcados (${nMarks})</button>
@@ -1128,7 +1163,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   function viewDevo() {
     const i = bv.devo ?? devoToday(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
     const txt = verseText(b, c, v1, v2); if (!txt && !bibleErr) loadBible();
-    const done = !!(B().devo || {})[i];
+    const done = i === devoToday() ? devoDoneOn(i, dayKey(new Date())) : !!(B().devo || {})[i];
     return `
       <button class="back" data-bnav="devos">← Devocionais</button>
       <span class="eyebrow">${i === devoToday() ? 'Devocional de hoje · ' : ''}${i + 1} de ${DEVOS.length}</span>
@@ -1166,7 +1201,9 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   // ---------- routing & render ----------
   const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, biblia: viewBiblia, diario: viewDiario, perfil: viewPerfil };
   let tab = 'inicio';
+  let skipRoute = false;
   function route() {
+    if (skipRoute) { skipRoute = false; return; }
     if (location.hash === '#devocional') { bv = { mode: 'devo', devo: devoToday() }; tab = 'biblia'; render(); return window.scrollTo(0, 0); }
     if (location.hash === '#biblia' && tab !== 'biblia') bv = { ...bv, mode: 'books' };
     const h = location.hash.replace('#', '');
@@ -1363,10 +1400,22 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       if (ni >= 0) { const [b, c] = ps.days[d][ni]; return openChapter(b, c, { d, i: ni }); }
       toast('Dia ' + (d + 1) + ' concluído!'); bv = { mode: 'plan' }; render(); return window.scrollTo(0, 0);
     }
-    if (t.dataset.devo) { bv = { mode: 'devo', devo: +t.dataset.devo }; render(); return window.scrollTo(0, 0); }
+    if (t.dataset.devo) {
+      bv = { mode: 'devo', devo: +t.dataset.devo };
+      if (tab !== 'biblia') { tab = 'biblia'; skipRoute = true; location.hash = '#biblia'; }
+      render(); return window.scrollTo(0, 0);
+    }
     if (id === 'devoDone') {
-      const dd = B().devo || (B().devo = {}), i = bv.devo ?? devoToday();
-      if (dd[i]) delete dd[i]; else { dd[i] = new Date().toISOString(); toast('Devocional concluído'); }
+      const bb = B(), dd = bb.devo || (bb.devo = {}), lg = bb.devoLog, i = bv.devo ?? devoToday(), k = dayKey(new Date());
+      const isToday = i === devoToday(), done = isToday ? lg[k] === i : !!dd[i];
+      if (done) {
+        if (lg[k] === i) delete lg[k];
+        if (!isToday || (dd[i] && dayKey(dd[i]) === k)) delete dd[i];
+      } else {
+        lg[k] = i; dd[i] = new Date().toISOString();
+        const st = streakOf(new Set(Object.keys(lg)));
+        toast('Devocional concluído' + (st > 1 ? ` · ${st} dias seguidos` : ''));
+      }
       save(); return render();
     }
     if (t.dataset.bopen) { const [b, c] = t.dataset.bopen.split(':').map(Number); return openChapter(b, c); }
