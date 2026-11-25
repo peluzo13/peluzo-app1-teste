@@ -463,6 +463,68 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       ${CLOUD.ref ? '<button class="btn ghost" id="syncNow">Sincronizar agora</button><p class="muted" style="font-size:12px">Seu progresso fica numa área privada da sua conta: só você vê. Ao abrir o Firme em outro aparelho com a mesma conta, tudo aparece lá.</p>' : ''}
     </section>`;
   }
+  // ---------- Lembretes no celular (Web Push) ----------
+  const VAPID_PUBLIC = 'BAK7y0Ae4q6LQEABW1fzzS2OX-oOPY27L32M9gvntmDE_3pAr7a6t1ov2VcauHWikTykG93v9tzNBxnYXsEjeKI';
+  const PUSH_KEY = 'firme.push';
+  const isStandalone = () => window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  let swReg = null;
+  try {
+    if (pushSupported() && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+  } catch (e) {}
+  const pushCode = () => { try { return localStorage.getItem(PUSH_KEY) || ''; } catch (e) { return ''; } };
+  function pushCard() {
+    const code = pushCode();
+    let body;
+    if (!pushSupported() || !isStandalone()) {
+      body = `<p class="muted" style="font-size:14px">Para receber o devocional do dia e os lembretes como notificação, instale o Firme no iPhone:</p>
+        <ol style="margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px">
+          <li>Abra <b>peluzo13.github.io/peluzo-app1-teste</b> no Safari.</li>
+          <li>Toque em Compartilhar → Adicionar à Tela de Início.</li>
+          <li>Abra o Firme pela tela inicial e volte aqui no Perfil.</li>
+        </ol>`;
+    } else if (Notification.permission === 'denied') {
+      body = `<p class="muted" style="font-size:14px">As notificações estão bloqueadas. Libere em Ajustes → Notificações → Firme e volte aqui.</p>`;
+    } else if (!code) {
+      body = `<p class="muted" style="font-size:14px">Receba às 7h o devocional do dia, às 21h um lembrete para ficar firme e às 23h um convite para largar o celular.</p>
+        <button class="btn primary" id="pushOn">Ativar lembretes</button>`;
+    } else {
+      body = `<p style="font-size:14px">Lembretes ativados neste aparelho. Falta um passo, feito uma única vez:</p>
+        <ol style="margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px">
+          <li>Copie o código abaixo.</li>
+          <li>No GitHub, abra o repositório → Settings → Secrets and variables → Actions → <b>New repository secret</b>.</li>
+          <li>Nome: <b>PUSH_SUBSCRIPTION</b>. Cole o código e salve.</li>
+        </ol>
+        <textarea id="pushCode" readonly style="min-height:70px;font-size:11px">${esc(code)}</textarea>
+        <div class="row"><button class="btn" id="pushCopy">Copiar código</button><button class="btn ghost" id="pushTest">Testar notificação</button></div>`;
+    }
+    return `<section class="card" id="pushCard"><h3>Lembretes no celular</h3>${body}</section>`;
+  }
+  function refreshPush() { const el = document.getElementById('pushCard'); if (el) el.outerHTML = pushCard(); }
+  function b64ToBytes(b64) {
+    const s = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(s); const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  async function pushEnable() {
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { refreshPush(); return toast('Sem permissão, os lembretes não podem chegar'); }
+      const reg = swReg || await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
+      try { localStorage.setItem(PUSH_KEY, JSON.stringify(sub)); } catch (e) {}
+      refreshPush(); toast('Lembretes ativados');
+    } catch (e) { toast('Não consegui ativar. Abra o Firme pela tela inicial e tente de novo.'); }
+  }
+  async function pushTest() {
+    try {
+      const reg = swReg || await navigator.serviceWorker.ready;
+      const dv = DEVOS[devoToday()];
+      await reg.showNotification('Devocional de hoje: ' + dv[0], { body: refTxt(dv[1]) + ' · toque para ler', icon: 'icon-192.png', data: { url: './#devocional' }, tag: 'firme-teste' });
+    } catch (e) { toast('Não consegui mostrar a notificação de teste'); }
+  }
   function refreshAccount() {
     const el = document.getElementById('accountCard');
     if (el) el.outerHTML = accountCard();
@@ -695,6 +757,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     return `
       <header class="top"><h1>Perfil</h1></header>
       ${accountCard()}
+      ${pushCard()}
       <section class="stats">
         <div class="stat"><b>${Math.floor(cur)}</b><span>Sequência atual</span></div>
         <div class="stat"><b>${Math.floor(best)}</b><span>Melhor sequência</span></div>
@@ -875,7 +938,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
         if (ps.next >= ps.days.length) return `<section class="card"><h3>${esc(ps.def.name)}</h3><p>Plano concluído! Glória a Deus.</p><button class="btn" data-bnav="plans">Escolher outro plano</button></section>`;
         return `<section class="card"><div class="spread"><span class="eyebrow">Plano de hoje</span><span class="meta" style="font-size:12px;color:var(--muted)">${ps.doneDays}/${ps.days.length} dias</span></div><h3>${esc(ps.def.name)}</h3>${dayBlock(ps, ps.next, true)}<button class="btn ghost" data-bnav="plan">Ver plano completo</button></section>`;
       })()}
-      ${(() => { const i = devoNext(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional · dia ${i + 1} de ${DEVOS.length}</span>${dd[i] ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
+      ${(() => { const i = devoToday(), dv = DEVOS[i], dd = B().devo || {}; return `<section class="card"><div class="spread"><span class="eyebrow">Devocional de hoje · ${new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>${dd[i] ? '<span class="tag win">Concluído</span>' : ''}</div><h3>${esc(dv[0])}</h3><span class="ref">${refTxt(dv[1])}</span><div class="row"><button class="btn primary" data-devo="${i}">Ler devocional</button><button class="btn ghost" data-bnav="devos">Todos</button></div></section>`; })()}
       <div class="row">
         <button class="btn primary" id="bibCont">${last ? 'Continuar: ' + BOOKS[last[0]] + ' ' + last[1] : 'Começar por João 1'}</button>
         <button class="btn" data-bnav="marks">Marcados (${nMarks})</button>
@@ -1022,23 +1085,57 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     ['Ele vai terminar a obra', [49, 1, 6, 6], 'Deus começou algo em você e Ele mesmo vai completar. Sua santificação não depende só da sua força. Nos dias fracos, descanse nessa promessa: Ele não desiste de você.', 'Pai, obrigado porque não desistes de mim. Completa a tua obra.', 'Releia seus motivos no Perfil e agradeça pelo caminho até aqui.'],
     ['Ainda que eu caia', [32, 7, 8, 8], 'Cair não é o fim da história. O profeta diz: “ainda que eu tenha caído, me levantarei”. O inimigo quer que você fique no chão. Deus quer que você se levante agora, não amanhã.', 'Senhor, mesmo quando eu cair, me levanta e sê a minha luz.', 'Se você caiu recentemente, registre com sinceridade e recomece hoje.'],
     ['Corra com perseverança', [57, 12, 1, 2], 'A vida cristã é uma corrida longa. Tire o peso, livre-se do pecado que embaraça e olhe para Jesus. Ele já correu antes de você e está te esperando na linha de chegada.', 'Jesus, ponho os olhos em ti. Me dá perseverança para continuar correndo.', 'Escolha o seu próximo passo: um novo plano de leitura ou mais 30 dias de desafio.'],
+    ['Pensamentos levados cativos', [46, 10, 5, 5], 'Nem todo pensamento que aparece precisa ser hospedado. Paulo fala em levar cada pensamento cativo à obediência de Cristo. Você não escolhe o primeiro pensamento, mas escolhe o segundo: entregar a Jesus ou continuar alimentando.', 'Senhor, toma meus pensamentos e coloca-os aos teus pés.', 'Quando vier um pensamento impuro hoje, responda na hora com uma frase curta: “isto pertence a Cristo”.'],
+    ['O caminho até a esquina', [19, 7, 7, 9], 'O jovem de Provérbios não caiu de repente. Ele foi andando perto da esquina dela, ao anoitecer, sem propósito. A queda começa no caminho que escolhemos fazer à toa. Mude a rota antes de chegar à esquina.', 'Pai, me dá sabedoria para não passear perto do que me derruba.', 'Identifique a sua “esquina” (um app, um horário, um lugar) e mude a rota hoje.'],
+    ['Lícito, mas não me domina', [45, 6, 12, 12], 'Nem tudo que é permitido é bom para você. Paulo diz que não vai se deixar dominar por nada. Celular, séries e redes não são pecado em si, mas podem virar senhores. Liberdade cristã inclui dizer não ao que te controla.', 'Senhor, que nada além de ti domine a minha vida.', 'Escolha uma coisa “permitida” que tem te dominado e fique sem ela por 24 horas.'],
+    ['Domínio próprio é fruto', [47, 5, 22, 23], 'Domínio próprio aparece na lista do fruto do Espírito. Fruto não nasce de força bruta, mas de estar ligado à videira. Quanto mais você permanece em Cristo, mais esse fruto cresce, devagar e de verdade.', 'Espírito Santo, faz crescer em mim o fruto do domínio próprio.', 'Passe 10 minutos hoje em oração silenciosa, só permanecendo na presença de Deus.'],
+    ['Deus me conhece por inteiro', [18, 139, 1, 3], 'Deus te conhece quando você se senta e quando se levanta. Isso pode assustar quem quer esconder algo, mas é um abrigo para quem quer mudar. Você não precisa fingir diante de quem já sabe tudo e ainda assim te ama.', 'Senhor, tu me conheces. Não quero me esconder de ti.', 'Ore hoje com total sinceridade, contando a Deus exatamente como você está.'],
+    ['A luz que expõe e cura', [48, 5, 11, 13], 'As obras das trevas crescem no escondido. Quando são trazidas à luz, perdem força. A luz dói no começo, mas é ela que cura. O segredo é o melhor amigo do vício.', 'Jesus, tu és a luz. Ilumina o que eu tenho escondido.', 'Traga à luz uma área escondida: conte a Deus e, se possível, a alguém de confiança.'],
+    ['Esconder adoece', [18, 32, 3, 5], 'Davi diz que, enquanto calou, seus ossos envelheceram. A culpa guardada pesa no corpo e na alma. Quando ele confessou, Deus perdoou. O alívio estava a uma confissão de distância.', 'Senhor, não quero mais calar. Confesso a ti e recebo o teu perdão.', 'Escreva no Diário o que está pesando e entregue a Deus em oração.'],
+    ['Faça morrer o que é terreno', [50, 3, 5, 5], 'Paulo não manda controlar a impureza, manda fazer morrer. Não se negocia com o que quer te matar. Isso significa cortar fontes, mudar hábitos e não alimentar o desejo errado nem um pouco.', 'Senhor, me dá coragem para fazer morrer o que ainda vive em mim e te desagrada.', 'Corte hoje uma fonte de alimento da luxúria: um perfil, uma série, uma conversa.'],
+    ['A vontade de Deus para você', [51, 4, 3, 5], 'Muita gente pergunta qual é a vontade de Deus. Esta é clara: a sua santificação. Aprender a controlar o próprio corpo com santidade e honra não é castigo, é o caminho em que Deus quer te ver andar.', 'Pai, quero fazer a tua vontade. Santifica-me por completo.', 'Agradeça a Deus hoje por ele se importar com cada parte da sua vida.'],
+    ['Do que o coração está cheio', [41, 6, 45, 45], 'A boca fala do que o coração está cheio, e os olhos procuram o que o coração deseja. Se você quer mudar o que faz, encha o coração de outra coisa: da Palavra, de adoração, de propósito.', 'Senhor, enche meu coração de ti, até transbordar.', 'Escute hoje uma música de adoração no momento em que costuma ficar vulnerável.'],
+    ['Combata o bom combate', [53, 6, 12, 12], 'A fé é uma luta, e é uma luta boa. Não estranhe que seja difícil. Você não está perdendo só porque está lutando; está lutando porque está vivo em Cristo. Tome posse da vida eterna para a qual foi chamado.', 'Senhor, me fortalece para combater o bom combate hoje.', 'Pense em uma batalha que você venceu nesta jornada e agradeça a Deus por ela.'],
+    ['A força que vai embora', [6, 16, 19, 20], 'Sansão brincou com a tentação tantas vezes que um dia acordou sem forças e nem percebeu. Pecado tolerado drena a força aos poucos. A boa notícia é que o cabelo dele voltou a crescer: Deus restaura quem volta.', 'Senhor, não quero brincar com a tentação. Restaura as minhas forças.', 'Pare hoje uma “brincadeira” com a tentação que você vem tolerando.'],
+    ['Lâmpada para os pés', [18, 119, 105, 105], 'A Palavra não ilumina a estrada inteira, ilumina o próximo passo. Você não precisa saber como vai vencer pelo resto da vida, só precisa obedecer hoje. Um passo iluminado de cada vez.', 'Senhor, ilumina o meu próximo passo com a tua Palavra.', 'Leia hoje um capítulo da Bíblia antes de abrir qualquer rede social.'],
+    ['Alegria plena na presença dele', [18, 16, 11, 11], 'A luxúria promete prazer, mas entrega vazio. Na presença de Deus há alegria plena e delícias para sempre. Você não está trocando prazer por tédio; está trocando um prazer falso pelo verdadeiro.', 'Deus, ensina-me a encontrar em ti a alegria que eu procurava no lugar errado.', 'Faça hoje algo que te traga alegria limpa: um esporte, um amigo, a natureza.'],
+    ['A água que mata a sede', [42, 4, 13, 14], 'Toda água deste mundo deixa sede de novo. A pornografia é assim: sempre pede mais e nunca satisfaz. Jesus oferece uma água que vira fonte dentro de você. Só ele mata a sede de verdade.', 'Jesus, dá-me da tua água. Estou cansado de beber o que não sacia.', 'Quando sentir aquele vazio hoje, ore: “Jesus, tu és a minha fonte”.'],
+    ['Vai e não peques mais', [42, 8, 10, 11], 'Jesus não condena a mulher e também não a deixa como estava. Primeiro vem o perdão, depois o chamado à mudança. Ele te trata do mesmo jeito: sem condenação e com um convite claro para viver diferente.', 'Senhor, obrigado por não me condenar. Ajuda-me a não pecar mais.', 'Receba o perdão hoje e escolha uma mudança concreta para viver diferente.'],
+    ['O Pai correu', [41, 15, 20, 20], 'O filho voltou sujo, com um discurso ensaiado. O pai o viu de longe, teve compaixão e correu. Deus não espera você se limpar para te receber. Ele corre na sua direção assim que você dá meia-volta.', 'Pai, estou voltando para casa. Obrigado por correr ao meu encontro.', 'Se você se afastou, volte hoje: uma oração simples já é dar meia-volta.'],
+    ['Pedro chorou e voltou', [41, 22, 61, 62], 'Pedro negou Jesus três vezes e chorou amargamente. Mas a história não terminou ali: Jesus o restaurou e o usou. O choro de Pedro foi o começo da volta, não o fim. Arrependimento verdadeiro abre a porta da restauração.', 'Jesus, quando eu falhar, que eu chore e volte para ti, e não fuja.', 'Leia João 21:15-17 e veja como Jesus restaura quem falhou.'],
+    ['Fortalecidos no Senhor', [48, 6, 10, 11], 'A luta não é só contra carne e sangue. Por isso Paulo manda se fortalecer no Senhor e vestir toda a armadura de Deus. Você não vai vencer com a sua força, mas com a força do poder dele.', 'Senhor, me revisto da tua armadura. Sê tu a minha força.', 'Leia Efésios 6:10-18 e escolha uma peça da armadura para “vestir” hoje.'],
+    ['O escudo da fé', [48, 6, 16, 16], 'As tentações chegam como dardos inflamados: rápidas, de surpresa, querendo pegar fogo. O escudo da fé apaga esses dardos. Fé é lembrar, na hora, que Deus é melhor, que ele é fiel e que a promessa dele vale mais.', 'Senhor, aumenta a minha fé para apagar os dardos do inimigo.', 'Tenha um versículo pronto para usar como escudo quando a tentação chegar.'],
+    ['A graça basta', [46, 12, 9, 9], 'Paulo pediu três vezes para Deus tirar o espinho. A resposta foi: “a minha graça te basta”. Às vezes a luta continua, mas a graça também continua. Na sua fraqueza, o poder de Cristo aparece mais.', 'Senhor, a tua graça me basta. Aperfeiçoa o teu poder na minha fraqueza.', 'Quando se sentir fraco hoje, diga: “a tua graça me basta”.'],
+    ['Vença o mal com o bem', [44, 12, 21, 21], 'Não basta lutar contra o mal; é preciso vencê-lo com o bem. Ocupe o espaço que o pecado ocupava com algo bom: servir alguém, ler, treinar, orar. O bem ocupa o lugar e o mal perde terreno.', 'Senhor, usa-me para fazer o bem hoje.', 'Faça hoje uma boa ação planejada para alguém, de preferência no horário em que você é mais tentado.'],
+    ['Diga-me com quem andas', [19, 13, 20, 20], 'Quem anda com sábios fica sábio. As pessoas ao seu redor puxam você para cima ou para baixo. Escolher amizades é parte da luta pela pureza. Procure gente que te aproxima de Deus.', 'Senhor, dá-me amigos sábios e faz de mim um amigo assim.', 'Marque um café ou uma conversa com alguém que te faz bem espiritualmente.'],
+    ['Confessem uns aos outros', [58, 5, 16, 16], 'Confessar a Deus traz perdão; confessar a um irmão traz cura. Tiago liga as duas coisas: confissão e oração uns pelos outros. Ter alguém que sabe da sua luta e ora por você muda tudo.', 'Senhor, dá-me coragem para não lutar sozinho.', 'Escolha uma pessoa de confiança e combine uma conversa sincera esta semana.'],
+    ['Escolha hoje', [5, 24, 15, 15], 'Josué não deixou a decisão para depois: escolhei hoje a quem servireis. A pureza não se decide uma vez para sempre, mas a cada dia. Hoje é o único dia que você tem nas mãos. Escolha servir ao Senhor hoje.', 'Senhor, hoje eu escolho te servir, com a minha casa e a minha vida.', 'Diga em voz alta, de manhã: “Hoje eu escolho servir ao Senhor”.'],
+    ['Esperança que não decepciona', [44, 5, 3, 5], 'A luta produz perseverança, a perseverança produz caráter, e o caráter produz esperança. Cada dia em que você resiste está formando algo em você. Nada desse esforço é desperdiçado nas mãos de Deus.', 'Senhor, usa esta luta para formar o meu caráter.', 'Olhe seu contador e lembre: cada dia é caráter sendo formado.'],
+    ['Verdadeiramente livres', [42, 8, 36, 36], 'Existe a liberdade de fazer o que se quer e a liberdade de ser quem Deus criou. Só o Filho dá a segunda. Quando Jesus liberta, a liberdade é real, não só um intervalo entre uma queda e outra.', 'Jesus, liberta-me de verdade. Creio no teu poder.', 'Escreva no Diário como seria a sua vida totalmente livre, e ore por isso.'],
+    ['Esquecendo o que fica para trás', [49, 3, 13, 14], 'Paulo tinha um passado pesado e decidiu não viver olhando para ele. Esquecer não é fingir que não aconteceu, é não deixar que o passado defina o próximo passo. Olhe para a frente, para o alvo.', 'Senhor, ajuda-me a deixar o passado contigo e correr para a frente.', 'Se um erro antigo te assombrar hoje, entregue-o a Deus e volte a olhar para a frente.'],
+    ['O Pai vê em secreto', [39, 6, 6, 6], 'O quarto fechado pode ser lugar de queda ou lugar de oração. Jesus ensina a entrar no quarto, fechar a porta e orar ao Pai que vê em secreto. Transforme o lugar da tentação em lugar de encontro.', 'Pai, que o meu quarto seja lugar de encontro contigo.', 'Antes de dormir hoje, ore por alguns minutos de porta fechada.'],
+    ['A coroa da vida', [58, 1, 12, 12], 'Feliz é quem suporta a provação. Não é feliz quem nunca é tentado, mas quem permanece firme. Existe uma coroa preparada para quem ama a Deus e persevera. Cada dia firme é um passo em direção a ela.', 'Senhor, quero permanecer firme até o fim. Obrigado pela coroa da vida.', 'Agradeça a Deus hoje pela promessa de recompensa e renove o compromisso de ficar firme.'],
   ];
   function verseText(b, c, v1, v2) {
     if (!BIBLE) return null;
-    return BIBLE[b][c - 1].slice(v1 - 1, v2).join(' ').replace(/^[A-ZÁÉ][a-záéíóúçã]{1,8}:(?=\S)/, '');
+    let t = BIBLE[b][c - 1].slice(v1 - 1, v2).join(' ').replace(/^[A-ZÁÉ][a-záéíóúçã]{1,8}:(?=\S)/, '');
+    if (b === 18 && v1 === 1) t = t.replace(/^Salmo[^:]{0,60}:\s*/, '');
+    return t;
   }
   const refTxt = ([b, c, v1, v2]) => BOOKS[b] + ' ' + c + ':' + v1 + (v2 > v1 ? '–' + v2 : '');
-  const devoNext = () => { const d = B().devo || {}; const i = DEVOS.findIndex((_, k) => !d[k]); return i < 0 ? DEVOS.length - 1 : i; };
+  // Um devocional novo por dia, pela data (o envio de notificações usa a mesma conta).
+  const devoToday = () => { const n = new Date(); return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / DAY) % DEVOS.length; };
   function viewDevo() {
-    const i = bv.devo ?? devoNext(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
-    const txt = verseText(b, c, v1, v2); if (!txt) loadBible();
+    const i = bv.devo ?? devoToday(), dv = DEVOS[i], [b, c, v1, v2] = dv[1];
+    const txt = verseText(b, c, v1, v2); if (!txt && !bibleErr) loadBible();
     const done = !!(B().devo || {})[i];
     return `
       <button class="back" data-bnav="devos">← Devocionais</button>
-      <span class="eyebrow">Dia ${i + 1} de ${DEVOS.length}</span>
+      <span class="eyebrow">${i === devoToday() ? 'Devocional de hoje · ' : ''}${i + 1} de ${DEVOS.length}</span>
       <header class="top"><h1>${esc(dv[0])}</h1></header>
       <article class="card devo">
-        <p class="verse">${txt ? '“' + esc(txt) + '”' : (bibleErr ? 'Não consegui carregar o versículo.' : 'Carregando o versículo…')}</p>
+        <p class="verse">${txt ? '“' + esc(txt) + '”' : (bibleErr ? 'Não consegui carregar o versículo. Verifique a internet.' : 'Carregando o versículo…')}</p>
+        ${!txt && bibleErr ? '<button class="btn" id="bibRetry">Tentar de novo</button>' : ''}
         <span class="ref">${refTxt(dv[1])}</span>
       </article>
       <article class="card devo"><h4>Reflexão</h4><p class="body">${esc(dv[2])}</p></article>
@@ -1054,7 +1151,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     return `
       <button class="back" data-bnav="books">← Bíblia</button>
       <header class="top"><h1>Devocionais</h1></header>
-      <p class="muted">30 dias de liberdade: uma passagem, uma reflexão, uma oração e um passo prático por dia.</p>
+      <p class="muted">${DEVOS.length} devocionais sobre liberdade e pureza. Todo dia aparece um novo, conforme a data. Cada um tem uma passagem, uma reflexão, uma oração e um passo prático.</p>
       <div class="bar"><i style="width:${(nd / DEVOS.length * 100).toFixed(1)}%"></i></div>
       <p class="muted" style="font-size:13px">${nd} de ${DEVOS.length} concluídos</p>
       <div class="list">${DEVOS.map((dv, i) => `<button class="read-item ${d[i] ? 'ok' : ''}" data-devo="${i}"><span class="box"></span><span style="color:var(--fg)">${i + 1}. ${esc(dv[0])}</span><span>${refTxt(dv[1])}</span></button>`).join('')}</div>`;
@@ -1070,6 +1167,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
   const VIEWS = { inicio: viewInicio, desafio: viewDesafio, incentivo: viewIncentivo, biblia: viewBiblia, diario: viewDiario, perfil: viewPerfil };
   let tab = 'inicio';
   function route() {
+    if (location.hash === '#devocional') { bv = { mode: 'devo', devo: devoToday() }; tab = 'biblia'; render(); return window.scrollTo(0, 0); }
     if (location.hash === '#biblia' && tab !== 'biblia') bv = { ...bv, mode: 'books' };
     const h = location.hash.replace('#', '');
     tab = VIEWS[h] ? h : 'inicio';
@@ -1267,7 +1365,7 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
     }
     if (t.dataset.devo) { bv = { mode: 'devo', devo: +t.dataset.devo }; render(); return window.scrollTo(0, 0); }
     if (id === 'devoDone') {
-      const dd = B().devo || (B().devo = {}), i = bv.devo ?? devoNext();
+      const dd = B().devo || (B().devo = {}), i = bv.devo ?? devoToday();
       if (dd[i]) delete dd[i]; else { dd[i] = new Date().toISOString(); toast('Devocional concluído'); }
       save(); return render();
     }
@@ -1302,6 +1400,14 @@ nav.tabs a[aria-current="page"] { color: var(--gold); }
       const d = new Date($('#startEdit').value);
       if (isNaN(d) || d > new Date()) return toast('Escolha uma data que já passou');
       S.firstStart = d.toISOString(); S.onboarded = true; save(); render(); return toast('Início atualizado');
+    }
+    if (id === 'pushOn') { pushEnable(); return; }
+    if (id === 'pushTest') { pushTest(); return; }
+    if (id === 'pushCopy') {
+      const ta = $('#pushCode');
+      try { navigator.clipboard.writeText(ta.value).then(() => toast('Código copiado'), () => { ta.select(); toast('Selecionado. Copie manualmente.'); }); }
+      catch (err) { ta.select(); toast('Selecionado. Copie manualmente.'); }
+      return;
     }
     if (id === 'syncNow') { if (CLOUD.ref) cloudPull(false); return; }
     if (id === 'bkCopy') {
